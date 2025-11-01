@@ -8,5 +8,9 @@ namespace Maintix_API.Models
         public DateTime FechaInicio { get; set; } = DateTime.Now;
         public DateTime? FechaFin { get; set; }
         public string Estado { get; set; } = "pendiente";
+
+        // Navegación
+        public Equipo? Equipo { get; set; }
+        public TipoMantenimiento? TipoMantenimiento { get; set; }
     }
 }

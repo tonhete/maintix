@@ -7,5 +7,8 @@ namespace Maintix_API.Models
         public int ItemId { get; set; }
         public bool Completado { get; set; } = false;
         public string? Observaciones { get; set; }
+
+        // Navegación
+        public ItemMantenimiento Item { get; set; } = null!;
     }
 }

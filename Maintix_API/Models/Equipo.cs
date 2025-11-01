@@ -10,5 +10,8 @@ namespace Maintix_API.Models
         public int ContadorTipoA { get; set; } = 0;
         public int ContadorTipoB { get; set; } = 0;
         public int ContadorTipoC { get; set; } = 0;
+
+        // Navegación
+        public TipoMaquinaria? TipoMaquinaria { get; set; }
     }
 }

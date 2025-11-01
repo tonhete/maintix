@@ -27,20 +27,22 @@
 - Instalación y configuración IIS
 - Configuración del entorno de desarrollo
 
-### FASE 3: Base de Datos - 6 horas
-**Fechas:** 19/10/2025 - 25/10/2025
+### FASE 3: Base de Datos - 6 horas ✅
+**Fechas:** 19/10/2025 - 01/11/2025
 
 - Creación de scripts SQL (estructura de tablas)
 - Datos de prueba iniciales
 - Pruebas de integridad y relaciones
+- Configuración de conexión remota a SQL Server
 
-### FASE 4: Backend API REST - 10 horas
-**Fechas:** 26/10/2025 - 05/11/2025
+### FASE 4: Backend API REST - 20 horas ✅
+**Fechas:** 01/11/2025 - 01/11/2025
 
-- Desarrollo completo API REST en ASP.NET Core
+- Desarrollo completo API REST en ASP.NET Core 9.0
 - Arquitectura MVC (Models, Repository, Controllers)
-- Implementación de endpoints CRUD
-- Testing con Swagger
+- Implementación de 11 controllers con endpoints CRUD
+- Testing con Swagger UI
+- Configuración de CORS
 
 ### FASE 5: Aplicación Android - 32 horas
 **Fechas:** 06/11/2025 - 25/11/2025
@@ -67,29 +69,48 @@
 |------|-------|--------|
 | Diseño completo | 30/09/2025 | ✅ |
 | Infraestructura operativa | 18/10/2025 | ✅ |
-| Base de datos funcional | 25/10/2025 | ⏳ |
-| API REST completa | 05/11/2025 | ⏳ |
+| Base de datos funcional | 01/11/2025 | ✅ |
+| API REST completa | 01/11/2025 | ✅ |
 | App móvil funcional | 25/11/2025 | ⏳ |
 | Documentación completa | 01/12/2025 | ⏳ |
+
+---
+
+## Progreso Actual
+
+**Horas completadas:** 30 de 66 horas (45%)
+
+- ✅ Fase 1: Análisis y Diseño - 8h
+- ✅ Fase 2: Infraestructura - 6h  
+- ✅ Fase 3: Base de Datos - 6h
+- ✅ Fase 4: Backend API REST - 10h
+- ⏳ Fase 5: Aplicación Android - 0/32h
+- ⏳ Fase 6: Documentación Final - 0/4h
+
+**Fase actual:** Aplicación Android  
+**Próximo hito:** App móvil funcional (25/11/2025)
 
 ---
 
 ## Recursos Necesarios
 
 - Máquina virtual VirtualBox con Windows Server 2022 (configurada)
-- SQL Server 2022 Developer (instalado)
-- Android Studio
+- SQL Server 2022 Developer (instalado y operativo)
+- Visual Studio 2022 (instalado)
+- Android Studio (pendiente configuración)
 - Dispositivo Android para pruebas
 
 ---
 
 ## Riesgos Identificados
 
-| Riesgo | Mitigación |
-|--------|------------|
-| Problemas de conexión API-App | Testing temprano de integración |
-| Tiempo insuficiente | Priorizar funcionalidades core |
-| Bugs de última hora | Dejar margen en cada fase |
+| Riesgo | Mitigación | Estado |
+|--------|------------|--------|
+| Problemas de conexión API-App | Testing temprano de integración | ⏳ |
+| Tiempo insuficiente | Priorizar funcionalidades core | ✅ |
+| Bugs de última hora | Dejar margen en cada fase | ⏳ |
+| Complejidad Android | Simplificar UI inicial | ⏳ |
 
 ---
-**Fase actual:** Base de Datos  
+
+
