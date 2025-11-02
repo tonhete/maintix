@@ -6,12 +6,12 @@ Aplicación móvil para la gestión integral del mantenimiento programado de maq
 
 ## Estado del Proyecto
 
-🚀 **Versión 0.2.0 - Backend completado**
+🚀 **Versión 0.2.0 - Backend completado (primera version funcional CRUD basico)**
 
 - ✅ Diseño de arquitectura
 - ✅ Modelo de base de datos (11 tablas)
 - ✅ Infraestructura configurada (Windows Server 2022, SQL Server 2022, IIS)
-- ✅ **Backend API REST completado** (11 controllers, CRUD completo)
+- ✅ **Backend API REST CRUD basico completado** (11 controllers, CRUD completo)
 - ✅ Base de datos poblada con datos de prueba
 - ⏳ Aplicación Android pendiente
 
