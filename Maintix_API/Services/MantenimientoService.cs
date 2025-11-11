@@ -100,11 +100,15 @@ namespace Maintix_API.Services
             await _context.SaveChangesAsync();
 
             // Obtener los items del checklist para este tipo de máquina y tipo de mantenimiento
+            Console.WriteLine($"Buscando items: TipoMaquinariaId={equipo.TipoMaquinariaId}, TipoMantenimientoId={dto.TipoMantenimientoId}");
+            
             var itemsTemplate = await _context.ItemsMantenimiento
                 .Where(i => i.TipoMaquinaId == equipo.TipoMaquinariaId && 
                            i.TipoMantenimientoId == dto.TipoMantenimientoId)
                 .OrderBy(i => i.Orden)
                 .ToListAsync();
+
+            Console.WriteLine($"Items encontrados: {itemsTemplate.Count}");
 
             var checklistItems = new List<ChecklistItemDto>();
 

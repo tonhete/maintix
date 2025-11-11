@@ -45,13 +45,13 @@ builder.Services.AddScoped<IHistoricoRepository, HistoricoRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // Usar CORS
 app.UseCors("AllowAll");

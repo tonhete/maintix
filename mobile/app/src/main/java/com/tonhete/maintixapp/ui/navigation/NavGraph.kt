@@ -12,27 +12,22 @@ import com.tonhete.maintixapp.data.appState
 import com.tonhete.maintixapp.ui.components.MainScaffold
 import com.tonhete.maintixapp.ui.screens.*
 
-// Navegación completa de la app
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: "dashboard"
-
-    // Observa el estado global del mantenimiento
     val mantenimientoEnCurso = appState.mantenimientoEnCurso
 
     NavHost(
         navController = navController,
         startDestination = "login"
     ) {
-        // Login (SIN bottom bar)
         composable("login") {
             LoginScreen(
                 onLogin = { navController.navigate("dashboard") }
             )
         }
 
-        // Dashboard (CON bottom bar)
         composable("dashboard") {
             MainScaffold(
                 currentRoute = currentRoute,
@@ -47,7 +42,6 @@ fun AppNavigation() {
             }
         }
 
-        // Perfil (CON bottom bar)
         composable("perfil") {
             MainScaffold(
                 currentRoute = currentRoute,
@@ -58,12 +52,11 @@ fun AppNavigation() {
             }
         }
 
-        // Detalle (CON bottom bar ahora)
         composable(
             route = "detalle/{mantenimientoId}",
-            arguments = listOf(navArgument("mantenimientoId") { type = NavType.StringType })
+            arguments = listOf(navArgument("mantenimientoId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val mantenimientoId = backStackEntry.arguments?.getString("mantenimientoId") ?: ""
+            val mantenimientoId = backStackEntry.arguments?.getInt("mantenimientoId") ?: 0
 
             MainScaffold(
                 currentRoute = currentRoute,
@@ -71,10 +64,9 @@ fun AppNavigation() {
                 onNavigate = { navController.navigate(it) }
             ) {
                 DetalleMantenimientoScreen(
-                    mantenimientoId = mantenimientoId,
+                    mantenimientoId = mantenimientoId.toString(),
                     onIniciarClick = {
-                        // Marca el mantenimiento como en curso
-                        appState.iniciarMantenimiento(mantenimientoId)
+                        appState.iniciarMantenimiento(mantenimientoId.toString())
                         navController.navigate("checklist/$mantenimientoId")
                     },
                     onBackClick = { navController.popBackStack() }
@@ -82,12 +74,11 @@ fun AppNavigation() {
             }
         }
 
-        // Checklist (CON bottom bar ahora)
         composable(
             route = "checklist/{mantenimientoId}",
-            arguments = listOf(navArgument("mantenimientoId") { type = NavType.StringType })
+            arguments = listOf(navArgument("mantenimientoId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val mantenimientoId = backStackEntry.arguments?.getString("mantenimientoId") ?: ""
+            val mantenimientoId = backStackEntry.arguments?.getInt("mantenimientoId") ?: 0
 
             MainScaffold(
                 currentRoute = currentRoute,
@@ -96,14 +87,7 @@ fun AppNavigation() {
             ) {
                 ChecklistScreen(
                     mantenimientoId = mantenimientoId,
-                    onFinalizarClick = {
-                        // Marca el mantenimiento como finalizado
-                        appState.finalizarMantenimiento()
-                        navController.navigate("dashboard") {
-                            popUpTo("dashboard") { inclusive = false }
-                        }
-                    },
-                    onBackClick = { navController.popBackStack() }
+                    navController = navController
                 )
             }
         }

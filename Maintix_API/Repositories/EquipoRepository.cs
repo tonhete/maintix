@@ -15,12 +15,16 @@ namespace Maintix_API.Repositories
 
         public async Task<IEnumerable<Equipo>> GetAllAsync()
         {
-            return await _context.Equipos.ToListAsync();
+            return await _context.Equipos
+                .Include(e => e.TipoMaquinaria)
+                .ToListAsync();
         }
 
         public async Task<Equipo?> GetByIdAsync(int id)
         {
-            return await _context.Equipos.FindAsync(id);
+            return await _context.Equipos
+                .Include(e => e.TipoMaquinaria)
+                .FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task<Equipo> CreateAsync(Equipo equipo)

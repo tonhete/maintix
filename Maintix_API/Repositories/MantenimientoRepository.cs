@@ -15,12 +15,20 @@ namespace Maintix_API.Repositories
 
         public async Task<IEnumerable<Mantenimiento>> GetAllAsync()
         {
-            return await _context.Mantenimientos.ToListAsync();
+            return await _context.Mantenimientos
+                .Include(m => m.Equipo)
+                    .ThenInclude(e => e.TipoMaquinaria)
+                .Include(m => m.TipoMantenimiento)
+                .ToListAsync();
         }
 
         public async Task<Mantenimiento?> GetByIdAsync(int id)
         {
-            return await _context.Mantenimientos.FindAsync(id);
+            return await _context.Mantenimientos
+                .Include(m => m.Equipo)
+                    .ThenInclude(e => e.TipoMaquinaria)
+                .Include(m => m.TipoMantenimiento)
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task<Mantenimiento> CreateAsync(Mantenimiento mantenimiento)
