@@ -114,6 +114,9 @@ namespace Maintix_API.Data
                 entity.Property(e => e.TipoMaquinaId).HasColumnName("tipo_maquina_id");
                 entity.Property(e => e.TipoMantenimientoId).HasColumnName("tipo_mantenimiento_id");
                 entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+                entity.Property(e => e.DescripcionDetallada).HasColumnName("descripcion_detallada");
+                entity.Property(e => e.Herramientas).HasColumnName("herramientas");
+                entity.Property(e => e.ImagenUrl).HasColumnName("imagen_url");
                 entity.Property(e => e.Orden).HasColumnName("orden");
             });
 

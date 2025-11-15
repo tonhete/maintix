@@ -6,6 +6,9 @@ namespace Maintix_API.Models
         public int TipoMaquinaId { get; set; }
         public int TipoMantenimientoId { get; set; }
         public string Descripcion { get; set; } = string.Empty;
+        public string? DescripcionDetallada { get; set; }
+        public string? Herramientas { get; set; }
+        public string? ImagenUrl { get; set; }
         public int Orden { get; set; } = 0;
     }
 }

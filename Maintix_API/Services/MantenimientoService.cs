@@ -130,6 +130,9 @@ namespace Maintix_API.Services
                     ChecklistId = checklistItem.Id,
                     ItemId = item.Id,
                     Descripcion = item.Descripcion,
+                    DescripcionDetallada = item.DescripcionDetallada,
+                    Herramientas = item.Herramientas,
+                    ImagenUrl = item.ImagenUrl,
                     Orden = item.Orden,
                     Completado = false
                 });
@@ -241,6 +244,9 @@ namespace Maintix_API.Services
                     ChecklistId = c.Id,
                     ItemId = c.ItemId,
                     Descripcion = c.Item.Descripcion,
+                    DescripcionDetallada = c.Item.DescripcionDetallada,
+                    Herramientas = c.Item.Herramientas,
+                    ImagenUrl = c.Item.ImagenUrl,
                     Orden = c.Item.Orden,
                     Completado = c.Completado,
                     Observaciones = c.Observaciones

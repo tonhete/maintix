@@ -18,6 +18,9 @@ data class ChecklistItem(
     @SerializedName("checklistId") val checklistId: Int,
     @SerializedName("itemId") val itemId: Int,
     @SerializedName("descripcion") val descripcion: String,
+    @SerializedName("descripcionDetallada") val descripcionDetallada: String?,  // NUEVO
+    @SerializedName("herramientas") val herramientas: String?,                  // NUEVO
+    @SerializedName("imagenUrl") val imagenUrl: String?,                        // NUEVO
     @SerializedName("orden") val orden: Int,
     @SerializedName("completado") val completado: Boolean,
     @SerializedName("observaciones") val observaciones: String?

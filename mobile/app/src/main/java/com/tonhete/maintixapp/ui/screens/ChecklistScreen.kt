@@ -1,5 +1,6 @@
 package com.tonhete.maintixapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +16,7 @@ import com.tonhete.maintixapp.data.models.ChecklistItem
 import com.tonhete.maintixapp.data.models.ActualizarChecklistDto
 import com.tonhete.maintixapp.data.models.ActualizarItemChecklistDto
 import com.tonhete.maintixapp.data.models.FinalizarMantenimientoDto
+import com.tonhete.maintixapp.ui.components.ItemDetalleModal
 import kotlinx.coroutines.launch
 
 @Composable
@@ -22,15 +24,17 @@ fun ChecklistScreen(
     mantenimientoId: Int,
     navController: NavController
 ) {
+    // Estados de la pantalla
     var checklistItems by remember { mutableStateOf<List<ChecklistItem>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
+    var selectedItem by remember { mutableStateOf<ChecklistItem?>(null) } // Item seleccionado para modal
 
     val scope = rememberCoroutineScope()
 
-    // Cargar checklist
+    // Cargar checklist al iniciar
     LaunchedEffect(mantenimientoId) {
         scope.launch {
             try {
@@ -48,7 +52,7 @@ fun ChecklistScreen(
         }
     }
 
-    // Función para guardar progreso
+    // Función para guardar progreso (sin finalizar)
     fun guardarProgreso() {
         scope.launch {
             isSaving = true
@@ -56,7 +60,6 @@ fun ChecklistScreen(
             successMessage = null
 
             try {
-                // Crear DTO para actualizar checklist
                 val dto = ActualizarChecklistDto(
                     items = checklistItems.map {
                         ActualizarItemChecklistDto(
@@ -85,14 +88,14 @@ fun ChecklistScreen(
         }
     }
 
-    // Función para finalizar mantenimiento
+    // Función para finalizar mantenimiento (solo si todo completo)
     fun finalizarMantenimiento() {
         scope.launch {
             isSaving = true
             errorMessage = null
 
             try {
-                // Primero guardamos el checklist
+                // 1. Guardar checklist
                 val checklistDto = ActualizarChecklistDto(
                     items = checklistItems.map {
                         ActualizarItemChecklistDto(
@@ -109,7 +112,7 @@ fun ChecklistScreen(
                 )
 
                 if (checklistResponse.isSuccessful) {
-                    // Luego finalizamos el mantenimiento
+                    // 2. Finalizar mantenimiento
                     val finalizarDto = FinalizarMantenimientoDto(
                         usuarioId = 1, // TODO: usar usuario real del login
                         incidencias = null // TODO: permitir añadir incidencias
@@ -121,6 +124,7 @@ fun ChecklistScreen(
                     )
 
                     if (finalizarResponse.isSuccessful) {
+                        // 3. Limpiar estado y volver al dashboard
                         appState.finalizarMantenimiento()
                         navController.navigate("dashboard") {
                             popUpTo("dashboard") { inclusive = false }
@@ -139,6 +143,7 @@ fun ChecklistScreen(
         }
     }
 
+    // Calcular progreso
     val completados = checklistItems.count { it.completado }
     val total = checklistItems.size
     val todoCompleto = total > 0 && completados == total
@@ -148,10 +153,12 @@ fun ChecklistScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Botón volver
         TextButton(onClick = { navController.popBackStack() }) {
             Text("← Volver")
         }
 
+        // Título
         Text(
             text = "Checklist Mantenimiento #$mantenimientoId",
             style = MaterialTheme.typography.headlineMedium
@@ -160,19 +167,23 @@ fun ChecklistScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         when {
+            // Estado: Cargando
             isLoading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
+            // Estado: Error
             errorMessage != null -> {
                 Text(text = errorMessage ?: "", color = MaterialTheme.colorScheme.error)
             }
+            // Estado: Lista vacía
             checklistItems.isEmpty() -> {
                 Text("No hay items en este checklist")
             }
+            // Estado: Lista cargada
             else -> {
-                // Mensaje de éxito
+                // Mensaje de éxito (si se guardó)
                 successMessage?.let {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -188,6 +199,7 @@ fun ChecklistScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
+                // Progreso
                 Text(
                     text = "$completados/$total items completados",
                     style = MaterialTheme.typography.bodyLarge
@@ -199,6 +211,7 @@ fun ChecklistScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Lista de items
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -207,13 +220,15 @@ fun ChecklistScreen(
                         CheckItemCard(
                             item = item,
                             onCheckChange = { checked ->
+                                // Actualizar estado local del checkbox
                                 checklistItems = checklistItems.map {
                                     if (it.checklistId == item.checklistId) {
                                         it.copy(completado = checked)
                                     } else it
                                 }
                                 successMessage = null // Limpiar mensaje al hacer cambios
-                            }
+                            },
+                            onClick = { selectedItem = item } // Abrir modal al pulsar
                         )
                     }
                 }
@@ -259,15 +274,27 @@ fun ChecklistScreen(
             }
         }
     }
+
+    // Modal de detalle de item (si hay uno seleccionado)
+    selectedItem?.let { item ->
+        ItemDetalleModal(
+            item = item,
+            onDismiss = { selectedItem = null } // Cerrar modal
+        )
+    }
 }
 
+// Card de cada item del checklist (clickeable)
 @Composable
 fun CheckItemCard(
     item: ChecklistItem,
-    onCheckChange: (Boolean) -> Unit
+    onCheckChange: (Boolean) -> Unit,
+    onClick: () -> Unit // Callback al pulsar la card
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick) // Hacer clickeable toda la card
     ) {
         Row(
             modifier = Modifier
@@ -276,6 +303,7 @@ fun CheckItemCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Texto del item
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -291,6 +319,7 @@ fun CheckItemCard(
                 }
             }
 
+            // Checkbox
             Checkbox(
                 checked = item.completado,
                 onCheckedChange = onCheckChange

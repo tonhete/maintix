@@ -38,6 +38,9 @@ namespace Maintix_API.Repositories
             existing.TipoMaquinaId = itemMantenimiento.TipoMaquinaId;
             existing.TipoMantenimientoId = itemMantenimiento.TipoMantenimientoId;
             existing.Descripcion = itemMantenimiento.Descripcion;
+            existing.DescripcionDetallada = itemMantenimiento.DescripcionDetallada;
+            existing.Herramientas = itemMantenimiento.Herramientas;
+            existing.ImagenUrl = itemMantenimiento.ImagenUrl;
             existing.Orden = itemMantenimiento.Orden;
 
             await _context.SaveChangesAsync();

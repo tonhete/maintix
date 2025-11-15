@@ -5,6 +5,9 @@ namespace Maintix_API.DTOs
         public int ChecklistId { get; set; }
         public int ItemId { get; set; }
         public string Descripcion { get; set; } = string.Empty;
+        public string? DescripcionDetallada { get; set; }
+        public string? Herramientas { get; set; }
+        public string? ImagenUrl { get; set; }
         public int Orden { get; set; }
         public bool Completado { get; set; }
         public string? Observaciones { get; set; }
