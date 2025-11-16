@@ -22,6 +22,20 @@ namespace Maintix_API.Controllers
             return Ok(items);
         }
 
+        // GET: api/Equipo/resumen
+        [HttpGet("resumen")]
+        public async Task<ActionResult> GetResumen()
+        {
+            var equipos = await _repository.GetAllAsync();
+            var resumen = equipos.Select(e => new
+            {
+                id = e.Id,
+                nombre = e.NumeroSerie,
+                horasActuales = e.HorasActuales
+            });
+            return Ok(resumen);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Equipo>> GetById(int id)
         {

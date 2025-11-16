@@ -52,5 +52,14 @@ namespace Maintix_API.Controllers
             if (!result) return NotFound();
             return NoContent();
         }
+    
+    [HttpGet("tecnico/{tecnicoId}")]
+        public async Task<ActionResult<IEnumerable<Mantenimiento>>> GetByTecnico(int tecnicoId)
+        {
+            var mantenimientos = await _repository.GetMantenimientosByTecnicoAsync(tecnicoId);
+            if (mantenimientos == null || !mantenimientos.Any())
+                return NotFound();
+            return Ok(mantenimientos);
+        }
     }
 }

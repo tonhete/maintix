@@ -10,5 +10,10 @@ namespace Maintix_API.Services
         Task<bool> ActualizarChecklistAsync(int mantenimientoId, ActualizarChecklistDto dto);
         Task<bool> FinalizarMantenimientoAsync(int mantenimientoId, FinalizarMantenimientoDto dto);
         Task<MantenimientoConChecklistDto?> ObtenerMantenimientoConChecklistAsync(int mantenimientoId);
+        
+        // Nuevos métodos
+        Task<List<AlertaMantenimientoDto>> VerificarTodasAlertasAsync();
+        Task<List<MantenimientoConChecklistDto>> CrearMantenimientosMasivosAsync(CrearMantenimientoMasivoDto dto);
+        Task<bool> AsignarOperarioAsync(int mantenimientoId, int operarioId);
     }
 }

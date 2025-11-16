@@ -185,7 +185,7 @@ namespace Maintix_API.Services
 
             // Obtener el nombre del usuario
             var usuario = await _context.Usuarios.FindAsync(dto.UsuarioId);
-            var nombreOperario = usuario?.Nombre ?? "Desconocido";
+            var nombreOperario = usuario?.Email ?? "Desconocido";
 
             // Crear registro en histórico
             var historico = new Historico
@@ -278,6 +278,128 @@ namespace Maintix_API.Services
                 "C" or "TIPO C" => "C",
                 _ => null
             };
+        }
+
+        // VERIFICAR ALERTAS DE TODOS LOS EQUIPOS
+        public async Task<List<AlertaMantenimientoDto>> VerificarTodasAlertasAsync()
+        {
+            var equipos = await _context.Equipos
+                .Include(e => e.TipoMaquinaria)
+                .ToListAsync();
+
+            var alertas = new List<AlertaMantenimientoDto>();
+
+            foreach (var equipo in equipos)
+            {
+                if (equipo.TipoMaquinaria == null) continue;
+
+                var mantenimientosPendientes = new List<string>();
+                var razones = new List<string>();
+
+                // Obtener mantenimientos pendientes de este equipo
+                var mantenimientosPendientesIds = await _context.Mantenimientos
+                    .Where(m => m.EquipoId == equipo.Id && 
+                               (m.Estado == "pendiente" || m.Estado == "pendiente_asignacion"))
+                    .Select(m => m.TipoMantenimientoId)
+                    .ToListAsync();
+
+                // Verificar Mantenimiento A
+                if (equipo.TipoMaquinaria.MantenimientoA > 0 && 
+                    equipo.ContadorTipoA >= equipo.TipoMaquinaria.MantenimientoA)
+                {
+                    // Buscar ID de tipo mantenimiento A
+                    var tipoA = await _context.TiposMantenimiento
+                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("A"));
+                    
+                    if (tipoA != null && !mantenimientosPendientesIds.Contains(tipoA.Id))
+                    {
+                        mantenimientosPendientes.Add("Tipo A");
+                        razones.Add($"Horas tipo A: {equipo.ContadorTipoA}/{equipo.TipoMaquinaria.MantenimientoA}");
+                    }
+                }
+
+                // Verificar Mantenimiento B
+                if (equipo.TipoMaquinaria.MantenimientoB > 0 && 
+                    equipo.ContadorTipoB >= equipo.TipoMaquinaria.MantenimientoB)
+                {
+                    var tipoB = await _context.TiposMantenimiento
+                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("B"));
+                    
+                    if (tipoB != null && !mantenimientosPendientesIds.Contains(tipoB.Id))
+                    {
+                        mantenimientosPendientes.Add("Tipo B");
+                        razones.Add($"Horas tipo B: {equipo.ContadorTipoB}/{equipo.TipoMaquinaria.MantenimientoB}");
+                    }
+                }
+
+                // Verificar Mantenimiento C
+                if (equipo.TipoMaquinaria.MantenimientoC > 0 && 
+                    equipo.ContadorTipoC >= equipo.TipoMaquinaria.MantenimientoC)
+                {
+                    var tipoC = await _context.TiposMantenimiento
+                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("C"));
+                    
+                    if (tipoC != null && !mantenimientosPendientesIds.Contains(tipoC.Id))
+                    {
+                        mantenimientosPendientes.Add("Tipo C");
+                        razones.Add($"Horas tipo C: {equipo.ContadorTipoC}/{equipo.TipoMaquinaria.MantenimientoC}");
+                    }
+                }
+
+                // Solo agregar si hay alertas
+                if (mantenimientosPendientes.Any())
+                {
+                    alertas.Add(new AlertaMantenimientoDto
+                    {
+                        EquipoId = equipo.Id,
+                        NumeroSerie = equipo.NumeroSerie,
+                        DescripcionEquipo = equipo.TipoMaquinaria.Descripcion,
+                        HorasActuales = equipo.HorasActuales,
+                        MantenimientosPendientes = mantenimientosPendientes
+                    });
+                }
+            }
+
+            return alertas;
+        }
+
+        // CREAR MANTENIMIENTOS MASIVOS
+        public async Task<List<MantenimientoConChecklistDto>> CrearMantenimientosMasivosAsync(CrearMantenimientoMasivoDto dto)
+        {
+            var resultados = new List<MantenimientoConChecklistDto>();
+
+            foreach (var item in dto.Mantenimientos)
+            {
+                var resultado = await CrearMantenimientoConChecklistAsync(item);
+                if (resultado != null)
+                {
+                    var mantenimiento = await _context.Mantenimientos.FindAsync(resultado.MantenimientoId);
+                    if (mantenimiento != null)
+                    {
+                        mantenimiento.Estado = "pendiente_asignacion";
+                        await _context.SaveChangesAsync();
+                    }
+                    resultados.Add(resultado);
+                }
+            }
+
+            return resultados;
+        }
+
+        // ASIGNAR OPERARIO
+        public async Task<bool> AsignarOperarioAsync(int mantenimientoId, int operarioId)
+        {
+            var mantenimiento = await _context.Mantenimientos.FindAsync(mantenimientoId);
+            if (mantenimiento == null) return false;
+
+            var operario = await _context.Usuarios.FindAsync(operarioId);
+            if (operario == null) return false;
+
+            mantenimiento.OperarioAsignadoId = operarioId;
+            mantenimiento.Estado = "pendiente";
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

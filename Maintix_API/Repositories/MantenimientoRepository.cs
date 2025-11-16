@@ -45,6 +45,7 @@ namespace Maintix_API.Repositories
 
             existing.EquipoId = mantenimiento.EquipoId;
             existing.TipoMantenimientoId = mantenimiento.TipoMantenimientoId;
+            existing.OperarioAsignadoId = mantenimiento.OperarioAsignadoId;
             existing.FechaInicio = mantenimiento.FechaInicio;
             existing.FechaFin = mantenimiento.FechaFin;
             existing.Estado = mantenimiento.Estado;
@@ -61,6 +62,32 @@ namespace Maintix_API.Repositories
             _context.Mantenimientos.Remove(mantenimiento);
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<List<Mantenimiento>> GetMantenimientosByTecnicoAsync(int tecnicoId)
+        {
+            var q = await _context.Mantenimientos
+                .Where(m => m.OperarioAsignadoId == tecnicoId)
+                .Select(m => new
+                {
+                    Mantenimiento = m,
+                    Total = _context.ChecklistMantenimiento.Count(c => c.MantenimientoId == m.Id),
+                    Completed = _context.ChecklistMantenimiento.Count(c => c.MantenimientoId == m.Id && c.Completado)
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Asignar el progreso a las entidades y devolver la entidad Mantenimiento
+            var result = new List<Mantenimiento>();
+            foreach (var x in q)
+            {
+                var m = x.Mantenimiento;
+                var total = x.Total;
+                var completed = x.Completed;
+                m.ProgresoChecklist = total == 0 ? 0.0 : (double)completed / total;
+                result.Add(m);
+            }
+
+            return result;
         }
     }
 }

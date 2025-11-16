@@ -5,20 +5,18 @@
 **Duración:** 6 meses (septiembre 2025 - marzo 2026)
 
 ### Recursos Humanos
-- Desarrollo: 66 horas a 30€/hora
-- **Total:** 1.980€
+- Desarrollo total: 104 horas a 30€/hora = 3.120€
+- **Total recursos humanos:** 3.120€
 
 ### Infraestructura
 - Servidor VPS Azure B2s (2 vCPU, 4GB RAM, 30GB almacenamiento): 38€/mes durante 6 meses
 - **Total servidor:** 228€
-- Dominio .com: 12€/año
-- **Total infraestructura:** 240€
 
 ### Contingencias
 - 10% sobre recursos humanos e infraestructura
-- **Total:** 222€
+- **Total:** 336€
 
-### TOTAL PROYECTO BASE: 2.442€
+### TOTAL PROYECTO BASE: 3.696€
 
 ---
 

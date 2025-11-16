@@ -24,9 +24,22 @@ fun AppNavigation() {
     ) {
         composable("login") {
             LoginScreen(
-                onLogin = { navController.navigate("dashboard") }
+                onLoginSuccess = { tipoUsuarioId ->
+                    when (tipoUsuarioId) {
+                        1 -> navController.navigate("dashboard_admin") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        2 -> navController.navigate("dashboard") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        else -> navController.navigate("dashboard") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                }
             )
         }
+
 
         composable("dashboard") {
             MainScaffold(
@@ -40,6 +53,10 @@ fun AppNavigation() {
                     }
                 )
             }
+        }
+
+        composable("dashboard_admin") {
+            DashboardAdminScreen()
         }
 
         composable("perfil") {

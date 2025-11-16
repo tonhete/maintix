@@ -103,6 +103,7 @@ namespace Maintix_API.Data
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.EquipoId).HasColumnName("equipo_id");
                 entity.Property(e => e.TipoMantenimientoId).HasColumnName("tipo_mantenimiento_id");
+                entity.Property(e => e.OperarioAsignadoId).HasColumnName("operario_asignado_id");  // ← NUEVO
                 entity.Property(e => e.FechaInicio).HasColumnName("fecha_inicio");
                 entity.Property(e => e.FechaFin).HasColumnName("fecha_fin");
                 entity.Property(e => e.Estado).HasColumnName("estado");

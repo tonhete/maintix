@@ -9,5 +9,6 @@ namespace Maintix_API.Repositories
         Task<Mantenimiento> CreateAsync(Mantenimiento mantenimiento);
         Task<Mantenimiento?> UpdateAsync(int id, Mantenimiento mantenimiento);
         Task<bool> DeleteAsync(int id);
+        Task<List<Mantenimiento>> GetMantenimientosByTecnicoAsync(int tecnicoId);
     }
 }

@@ -68,5 +68,30 @@ namespace Maintix_API.Controllers
             if (!result) return NotFound("Mantenimiento no encontrado");
             return Ok(new { message = "Mantenimiento finalizado correctamente" });
         }
+
+        // GET: api/MantenimientoService/alertas/todas
+        [HttpGet("alertas/todas")]
+        public async Task<ActionResult<List<AlertaMantenimientoDto>>> VerificarTodasAlertas()
+        {
+            var alertas = await _service.VerificarTodasAlertasAsync();
+            return Ok(alertas);
+        }
+
+        // POST: api/MantenimientoService/crear-masivo
+        [HttpPost("crear-masivo")]
+        public async Task<ActionResult<List<MantenimientoConChecklistDto>>> CrearMantenimientosMasivos([FromBody] CrearMantenimientoMasivoDto dto)
+        {
+            var mantenimientos = await _service.CrearMantenimientosMasivosAsync(dto);
+            return Ok(mantenimientos);
+        }
+
+        // PUT: api/MantenimientoService/5/asignar-operario
+        [HttpPut("{mantenimientoId}/asignar-operario")]
+        public async Task<ActionResult> AsignarOperario(int mantenimientoId, [FromBody] AsignarOperarioDto dto)
+        {
+            var result = await _service.AsignarOperarioAsync(mantenimientoId, dto.OperarioId);
+            if (!result) return NotFound("Mantenimiento u operario no encontrado");
+            return Ok(new { message = "Operario asignado correctamente" });
+        }
     }
 }
