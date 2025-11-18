@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.tonhete.maintixapp.data.RetrofitClient
@@ -16,13 +17,15 @@ import com.tonhete.maintixapp.data.models.ChecklistItem
 import com.tonhete.maintixapp.data.models.ActualizarChecklistDto
 import com.tonhete.maintixapp.data.models.ActualizarItemChecklistDto
 import com.tonhete.maintixapp.data.models.FinalizarMantenimientoDto
+import com.tonhete.maintixapp.data.models.Mantenimiento
 import com.tonhete.maintixapp.ui.components.ItemDetalleModal
 import kotlinx.coroutines.launch
 
 @Composable
 fun ChecklistScreen(
     mantenimientoId: Int,
-    navController: NavController
+    navController: NavController,
+    soloLectura: Boolean = false
 ) {
     // Estados de la pantalla
     var checklistItems by remember { mutableStateOf<List<ChecklistItem>>(emptyList()) }
@@ -30,7 +33,8 @@ fun ChecklistScreen(
     var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
-    var selectedItem by remember { mutableStateOf<ChecklistItem?>(null) } // Item seleccionado para modal
+    var selectedItem by remember { mutableStateOf<ChecklistItem?>(null) }
+    var mantenimiento by remember { mutableStateOf<Mantenimiento?>(null) }
 
     val scope = rememberCoroutineScope()
 
@@ -38,11 +42,17 @@ fun ChecklistScreen(
     LaunchedEffect(mantenimientoId) {
         scope.launch {
             try {
-                val response = RetrofitClient.apiService.getChecklistMantenimiento(mantenimientoId)
-                if (response.isSuccessful) {
-                    checklistItems = response.body()?.items ?: emptyList()
+                val checklistResponse = RetrofitClient.apiService.getChecklistMantenimiento(mantenimientoId)
+                if (checklistResponse.isSuccessful) {
+                    checklistItems = checklistResponse.body()?.items ?: emptyList()
                 } else {
-                    errorMessage = "Error: ${response.code()}"
+                    errorMessage = "Error: ${checklistResponse.code()}"
+                }
+
+                // Cargar datos del mantenimiento
+                val mantResponse = RetrofitClient.apiService.getMantenimiento(mantenimientoId)
+                if (mantResponse.isSuccessful) {
+                    mantenimiento = mantResponse.body()
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.message}"
@@ -159,11 +169,19 @@ fun ChecklistScreen(
         }
 
         // Título
-        Text(
-            text = "Checklist Mantenimiento #$mantenimientoId",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Column {
+            Text(
+                text = "${mantenimiento?.tipoMaquinariaInfo?.descripcion?.substringBefore("(")?.trim() ?: "Mantenimiento"} #$mantenimientoId",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
 
+            Text(
+                text = mantenimiento?.tipoMantenimiento?.descripcion ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         when {
@@ -184,19 +202,21 @@ fun ChecklistScreen(
             // Estado: Lista cargada
             else -> {
                 // Mensaje de éxito (si se guardó)
-                successMessage?.let {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Text(
-                            text = it,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                if (!soloLectura) {
+                    successMessage?.let {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
+                            Text(
+                                text = it,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 // Progreso
@@ -219,56 +239,69 @@ fun ChecklistScreen(
                     items(checklistItems) { item ->
                         CheckItemCard(
                             item = item,
+                            soloLectura = soloLectura,
                             onCheckChange = { checked ->
-                                // Actualizar estado local del checkbox
-                                checklistItems = checklistItems.map {
-                                    if (it.checklistId == item.checklistId) {
-                                        it.copy(completado = checked)
-                                    } else it
+                                if (!soloLectura) {
+                                    // Actualizar estado local del checkbox
+                                    checklistItems = checklistItems.map {
+                                        if (it.checklistId == item.checklistId) {
+                                            it.copy(completado = checked)
+                                        } else it
+                                    }
+                                    successMessage = null
                                 }
-                                successMessage = null // Limpiar mensaje al hacer cambios
                             },
-                            onClick = { selectedItem = item } // Abrir modal al pulsar
+                            onClick = { selectedItem = item }
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón GUARDAR PROGRESO (siempre activo)
-                Button(
-                    onClick = { guardarProgreso() },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isSaving,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
-                ) {
-                    if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-                    } else {
-                        Text("GUARDAR PROGRESO")
+                // Botones según modo
+                if (soloLectura) {
+                    // Modo solo lectura (admin viendo histórico)
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("VOLVER")
                     }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Botón FINALIZAR (solo si todo completo)
-                Button(
-                    onClick = { finalizarMantenimiento() },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = todoCompleto && !isSaving
-                ) {
-                    if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                } else {
+                    // Modo normal (técnico trabajando)
+                    Button(
+                        onClick = { guardarProgreso() },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isSaving,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
                         )
-                    } else {
-                        Text("FINALIZAR MANTENIMIENTO")
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                        } else {
+                            Text("GUARDAR PROGRESO")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = { finalizarMantenimiento() },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = todoCompleto && !isSaving
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("FINALIZAR MANTENIMIENTO")
+                        }
                     }
                 }
             }
@@ -279,7 +312,7 @@ fun ChecklistScreen(
     selectedItem?.let { item ->
         ItemDetalleModal(
             item = item,
-            onDismiss = { selectedItem = null } // Cerrar modal
+            onDismiss = { selectedItem = null }
         )
     }
 }
@@ -288,13 +321,14 @@ fun ChecklistScreen(
 @Composable
 fun CheckItemCard(
     item: ChecklistItem,
+    soloLectura: Boolean = false,
     onCheckChange: (Boolean) -> Unit,
-    onClick: () -> Unit // Callback al pulsar la card
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick) // Hacer clickeable toda la card
+            .clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier
@@ -319,10 +353,11 @@ fun CheckItemCard(
                 }
             }
 
-            // Checkbox
+            // Checkbox (solo interactivo si NO es solo lectura)
             Checkbox(
                 checked = item.completado,
-                onCheckedChange = onCheckChange
+                onCheckedChange = if (soloLectura) null else onCheckChange,
+                enabled = !soloLectura
             )
         }
     }

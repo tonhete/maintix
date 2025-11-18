@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tonhete.maintixapp.data.RetrofitClient
 import com.tonhete.maintixapp.data.models.Mantenimiento
@@ -107,70 +108,86 @@ fun MantenimientoCard(
     mantenimiento: Mantenimiento,
     onClick: () -> Unit
 ) {
-    val progreso = mantenimiento.progresoChecklist.toFloat()
-    val porcentaje = (progreso * 100).toInt()
-
-    // Colores reales exactos
-    val rojoClaro = Color(0xFFFFCDD2)
-    val naranjaClaro = Color(0xFFFFE0B2)
-    val verdeClaro = Color(0xFFC8E6C9)
-
-    val fondoCard = when {
-        mantenimiento.estado == "finalizado" -> verdeClaro
-        progreso == 0f -> rojoClaro
-        progreso > 0f && progreso < 1f -> naranjaClaro
-        else -> rojoClaro
-    }
-
-    val colorBarra = Color(0xFF1976D2) // color de la barra rellena
-
-    val fecha = mantenimiento.fechaInicio?.let {
-        try {
-            LocalDateTime.parse(it).format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-        } catch (_: Exception) { it }
+    // Color según estado
+    val badgeColor = when (mantenimiento.estado) {
+        "finalizado" -> Color(0xFF4CAF50)
+        "en_progreso" -> Color(0xFFFF9800)
+        else -> Color(0xFFF44336)
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = if (mantenimiento.estado == "finalizado") 20.dp else 8.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = fondoCard)
+            .clickable(onClick = onClick)
     ) {
-
-        Column(Modifier.padding(16.dp)) {
-
-            Text("Mantenimiento #${mantenimiento.id}", style = MaterialTheme.typography.titleMedium)
-
-            Spacer(Modifier.height(6.dp))
-
-            Text("Equipo ID: ${mantenimiento.equipoId}")
-            Text("Máquina: ")
-            Text("Estado: ${mantenimiento.estado}")
-
-            fecha?.let { Text("Fecha: $it") }
-
-            Spacer(Modifier.height(10.dp))
-
-            Text("$porcentaje%")
-
-            Spacer(Modifier.height(6.dp))
-
-            // Barra sin fondo, solo progreso
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(14.dp)
-                    .clip(RoundedCornerShape(50))
+        Column {
+            // Barra superior con estado
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = badgeColor
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(progreso)
-                        .clip(RoundedCornerShape(50))
-                        .background(colorBarra)
+                Text(
+                    text = mantenimiento.estado.uppercase(),
+                    modifier = Modifier.padding(8.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
                 )
+            }
+
+            // Contenido del card
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Nombre de la máquina (una línea)
+                Text(
+                    text = mantenimiento.maquinaNombre ?: "Máquina #${mantenimiento.equipoId}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+
+                // Número de serie
+                Text(
+                    text = "S/N: ${mantenimiento.numeroSerie ?: "N/A"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Tipo
+                Text(
+                    text = "Tipo: ${mantenimiento.tipoMantenimiento?.nombre ?: "N/A"}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                // Fecha
+                mantenimiento.fechaInicio?.let {
+                    Text(
+                        text = "Fecha: ${formatearFecha(it)}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                // Progreso (solo si no finalizado)
+                if (mantenimiento.estado != "finalizado") {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = { mantenimiento.progresoChecklist },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "${(mantenimiento.progresoChecklist * 100).toInt()}% completado",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
     }
 }
+
+

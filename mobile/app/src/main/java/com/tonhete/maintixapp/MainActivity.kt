@@ -1,8 +1,10 @@
 package com.tonhete.maintixapp
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import com.tonhete.maintixapp.ui.navigation.AppNavigation
 import com.tonhete.maintixapp.ui.theme.MaintixAppTheme
 
@@ -10,6 +12,7 @@ import com.tonhete.maintixapp.ui.theme.MaintixAppTheme
 class MainActivity : ComponentActivity() {
 
     // Se ejecuta cuando se crea la actividad (al abrir la app)
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

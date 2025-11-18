@@ -1,53 +1,374 @@
 package com.tonhete.maintixapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
+import com.tonhete.maintixapp.data.RetrofitClient
+import com.tonhete.maintixapp.data.models.AsignarOperarioDto
+import com.tonhete.maintixapp.data.models.Mantenimiento
+import com.tonhete.maintixapp.data.models.Usuario
+import kotlinx.coroutines.launch
 
 @Composable
-fun DashboardAdminScreen() {
+fun DashboardAdminScreen(navController: NavController) {
+    var mantenimientos by remember { mutableStateOf<List<Mantenimiento>>(emptyList()) }
+    var tecnicos by remember { mutableStateOf<List<Usuario>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var mantenimientoSeleccionado by remember { mutableStateOf<Mantenimiento?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                val mantenimientosResponse = RetrofitClient.apiService.getMantenimientos()
+                if (mantenimientosResponse.isSuccessful) {
+                    mantenimientos = mantenimientosResponse.body() ?: emptyList()
+                }
+
+                val usuariosResponse = RetrofitClient.apiService.getUsuarios()
+                if (usuariosResponse.isSuccessful) {
+                    tecnicos = (usuariosResponse.body() ?: emptyList())
+                        .filter { it.tipoUsuarioId == 2 }
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+// Filtrar y ordenar mantenimientos
+    val sinAsignar = mantenimientos.filter { it.operarioAsignadoId == null }
+    val pendientes = mantenimientos.filter {
+        it.operarioAsignadoId != null && (it.estado == "pendiente" || it.estado == "en_progreso")
+    }
+    val finalizados = mantenimientos.filter { it.estado == "finalizado" }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(16.dp)
     ) {
         Text(
-            text = "PANEL ADMINISTRADOR",
-            style = MaterialTheme.typography.headlineLarge,
+            text = "Panel Administrador",
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            errorMessage != null -> {
                 Text(
-                    text = "✓ Login Admin funcionando",
-                    style = MaterialTheme.typography.titleLarge
+                    text = errorMessage ?: "",
+                    color = MaterialTheme.colorScheme.error
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Próximamente:",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text("• Mantenimientos pendientes")
-                Text("• Últimos realizados")
-                Text("• Asignación de operarios")
+            }
+            else -> {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Sección: Sin asignar
+                    if (sinAsignar.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Sin asignar (${sinAsignar.size})",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        items(sinAsignar) { mantenimiento ->
+                            MantenimientoAdminCard(
+                                mantenimiento = mantenimiento,
+                                color = Color(0xFF2196F3),
+                                mostrarProgreso = false,
+                                estadoTexto = "PENDIENTE DE ASIGNACIÓN",
+                                onClick = { mantenimientoSeleccionado = mantenimiento }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                    }
+
+// Sección: Pendientes
+                    if (pendientes.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Pendientes (${pendientes.size})",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        items(pendientes) { mantenimiento ->
+                            MantenimientoAdminCard(
+                                mantenimiento = mantenimiento,
+                                color = Color(0xFFFF9800),
+                                mostrarProgreso = true,
+                                estadoTexto = mantenimiento.estado.uppercase(),
+                                onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                    }
+
+// Sección: Finalizados
+                    if (finalizados.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Finalizados (${finalizados.size})",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        items(finalizados) { mantenimiento ->
+                            MantenimientoAdminCard(
+                                mantenimiento = mantenimiento,
+                                color = Color(0xFF4CAF50),
+                                mostrarProgreso = false,
+                                estadoTexto = "FINALIZADO",
+                                onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
+                            )
+                        }
+                    }
+                }
             }
         }
+    }
+
+    // Modal para asignar técnico
+    mantenimientoSeleccionado?.let { mantenimiento ->
+        AsignarTecnicoModal(
+            mantenimiento = mantenimiento,
+            tecnicos = tecnicos,
+            onDismiss = { mantenimientoSeleccionado = null },
+            onAsignar = { tecnicoId ->
+                scope.launch {
+                    try {
+                        val response = RetrofitClient.apiService.asignarOperario(
+                            mantenimientoId = mantenimiento.id,
+                            body = AsignarOperarioDto(tecnicoId)
+                        )
+
+                        if (response.isSuccessful) {
+                            val nuevosMantenimientos = RetrofitClient.apiService.getMantenimientos()
+                            if (nuevosMantenimientos.isSuccessful) {
+                                mantenimientos = nuevosMantenimientos.body() ?: emptyList()
+                            }
+                            mantenimientoSeleccionado = null
+                        } else {
+                            errorMessage = "Error al asignar: ${response.code()}"
+                        }
+                    } catch (e: Exception) {
+                        errorMessage = "Error: ${e.message}"
+                    }
+                }
+            }
+        )
+    }
+}
+
+
+@Composable
+fun MantenimientoAdminCard(
+    mantenimiento: Mantenimiento,
+    color: Color,
+    mostrarProgreso: Boolean,
+    estadoTexto: String,
+    onClick: (() -> Unit)?
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) Modifier.clickable(onClick = onClick)
+                else Modifier
+            )
+    ) {
+        Column {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = color
+            ) {
+                Text(
+                    text = estadoTexto,  // Usar el parámetro en lugar de mantenimiento.estado
+                    modifier = Modifier.padding(8.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = mantenimiento.maquinaNombre ?: "Máquina #${mantenimiento.equipoId}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+
+                Text(
+                    text = "S/N: ${mantenimiento.numeroSerie ?: "N/A"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Tipo: ${mantenimiento.tipoMantenimiento?.nombre ?: "N/A"}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                mantenimiento.fechaInicio?.let {
+                    Text(
+                        text = "Fecha: ${formatearFecha(it)}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                if (mostrarProgreso) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = { mantenimiento.progresoChecklist },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = color
+                    )
+
+                    Text(
+                        text = "${(mantenimiento.progresoChecklist * 100).toInt()}% completado",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AsignarTecnicoModal(
+    mantenimiento: Mantenimiento,
+    tecnicos: List<Usuario>,
+    onDismiss: () -> Unit,
+    onAsignar: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var tecnicoSeleccionado by remember { mutableStateOf<Usuario?>(null) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Asignar técnico",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Mantenimiento #${mantenimiento.id}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Dropdown de técnicos
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        value = tecnicoSeleccionado?.email ?: "Seleccionar técnico",
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        tecnicos.forEach { tecnico ->
+                            DropdownMenuItem(
+                                text = { Text(tecnico.email) },
+                                onClick = {
+                                    tecnicoSeleccionado = tecnico
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botón asignar
+                Button(
+                    onClick = {
+                        tecnicoSeleccionado?.let { onAsignar(it.id) }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = tecnicoSeleccionado != null
+                ) {
+                    Text("Asignar")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Botón cancelar
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        }
+    }
+}
+
+// Reutilizar la función de formato de fecha
+fun formatearFecha(fecha: String): String {
+    return try {
+        val inputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+        val outputFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+        val date = inputFormat.parse(fecha)
+        date?.let { outputFormat.format(it) } ?: fecha
+    } catch (e: Exception) {
+        fecha
     }
 }

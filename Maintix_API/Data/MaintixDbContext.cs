@@ -139,6 +139,8 @@ namespace Maintix_API.Data
                 entity.Property(e => e.Operario).HasColumnName("operario");
                 entity.Property(e => e.Incidencias).HasColumnName("incidencias");
                 entity.Property(e => e.Finalizado).HasColumnName("finalizado");
+                // Las propiedades FechaMantenimiento, FechaFinalizacion, EquipoNumeroSerie y
+                // TipoMantenimientoNombre son solo para la API (NotMapped) y no se mapean a columnas.
             });
         }
     }

@@ -15,23 +15,25 @@
 - ✅ API REST completa con 40+ endpoints
 
 ### Mobile (🔨 En Desarrollo)
-- 🔨 Aplicación móvil Android para gestión de mantenimientos
-- 🔨 Sistema de login con JWT
-- 🔨 Consulta de equipos y maquinaria
-- ⏳ Visualización de alertas
-- ⏳ Mantenimientos asignados al operario
-- ⏳ Checklist interactivo de pasos a seguir
-- ⏳ Registro histórico de mantenimientos
-- ⏳ Consulta de histórico por equipo
-- ⏳ Información técnica: despiece y repuestos
+- ✅ Aplicación móvil Android para gestión de mantenimientos
+- ✅ Sistema de login con JWT
+- ✅ Consulta de equipos y maquinaria
+- ✅ Visualización de alertas
+- ✅ Mantenimientos asignados al operario
+- ✅ Checklist interactivo de pasos a seguir
+- ✅ Registro histórico de mantenimientos
+- ✅ Consulta de histórico por equipo
+- 🔨 Despieces y documentación técnica por equipo
+- 🔨 Sistema de adjuntar fotografías en mantenimientos
+- 🔨 Internacionalización (ES/EN/EU)
+- ⏳ Refinamiento UI/UX completo
 
 ## Fuera del Alcance
 
 - Gestión completa de equipos desde la app (registro y modificación). Se podrán consultar pero no crear ni editar desde la aplicación móvil
 - Notificaciones push del sistema operativo
 - Generación de informes PDF
-- Sistema de códigos QR (opcional si hay tiempo)
-- Fotografías de mantenimientos
+- Sistema de códigos QR
 - Versión iOS
 - Panel web de administración
 - Chat entre usuarios

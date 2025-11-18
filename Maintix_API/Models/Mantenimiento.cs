@@ -20,6 +20,20 @@ namespace Maintix_API.Models
         [NotMapped]
         public double ProgresoChecklist { get; set; } = 0.0;
 
+        // Campos no persistidos añadidos para la API
+        [NotMapped]
+        public string? NumeroSerie { get; set; }
+
+        [NotMapped]
+        public int HorasActuales { get; set; }
+
+        [NotMapped]
+        public TipoMaquinaria? TipoMaquinariaInfo { get; set; }
+
+        [NotMapped]
+        public string? MaquinaNombre { get; set; }
+
+
 
     }
 }

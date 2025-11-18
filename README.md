@@ -6,19 +6,27 @@ Aplicación móvil para la gestión integral del mantenimiento programado de maq
 
 ## Estado del Proyecto
 
-🚀 **Versión 0.3.0 - Backend con lógica de negocio + Android en desarrollo**
+🚀 **Versión 0.4.0 - Android funcional con gestión completa**
 
 - ✅ Diseño de arquitectura
 - ✅ Modelo de base de datos (11 tablas)
-- ✅ Infraestructura configurada (Windows Server 2022, SQL Server 2022, IIS)
-- ✅ **Backend API REST CRUD básico** (11 controllers)
-- ✅ **🔥 Sistema de alertas automáticas** (NUEVO)
-- ✅ **🔥 Gestión masiva de mantenimientos** (NUEVO)
-- ✅ **🔥 Asignación de operarios** (NUEVO)
-- ✅ **🔥 Autenticación JWT con roles** (NUEVO)
-- ✅ **🔥 Servicios de lógica de negocio** (NUEVO)
+- ✅ Infraestructura configurada (VPS OVH, SQL Server 2022, IIS)
+- ✅ **Backend API REST CRUD básico** (12 controllers)
+- ✅ **Sistema de alertas automáticas**
+- ✅ **Gestión masiva de mantenimientos**
+- ✅ **Asignación de operarios**
+- ✅ **Autenticación JWT con roles**
+- ✅ **Servicios de lógica de negocio**
 - ✅ Base de datos poblada con datos de prueba
-- 🔨 **Aplicación Android en desarrollo** (primeras pantallas funcionando)
+- ✅ **🔥 Aplicación Android funcional** (NUEVO)
+  - ✅ Login y autenticación JWT
+  - ✅ Dashboards por rol (Admin/Técnico)
+  - ✅ Gestión completa de mantenimientos
+  - ✅ Checklist interactivo con imágenes
+  - ✅ Consulta y actualización de equipos
+  - ✅ Historial de mantenimientos por equipo
+  - ✅ Visualización de información de proveedores
+- 🔨 **Refinamiento UI/UX y funcionalidades adicionales** (en progreso)
 
 ## Tecnologías
 
@@ -31,9 +39,10 @@ Aplicación móvil para la gestión integral del mantenimiento programado de maq
 - **Base de datos:** SQL Server 2022 Developer
 
 ### Infraestructura
-- **Servidor:** Windows Server 2022 Standard (VM en VirtualBox)
+- **Servidor:** VPS OVH Cloud (4 vCores, 8GB RAM, 75GB NVMe)
+- **Sistema Operativo:** Windows Server 2025
 - **Web Server:** IIS 10.0
-- **Conexión:** TCP/IP en red local (192.168.1.138)
+- **Conexión:** IP pública con dominio/SSL (producción)
 
 ### Frontend (Pendiente)
 - **Plataforma:** Android
@@ -53,74 +62,145 @@ maintix/
 │
 ├── database/                      # Base de datos
 │   ├── scripts/
-│   │   ├── 01-crear-tablas.sql   # Script creación de tablas
-│   │   └── 02-datos-prueba.sql   # Datos de prueba
+│   │   └── 01-crear-tablas.sql   # Script creación de tablas
 │   └── diagrams/                 # Diagramas ER
+│       └── esquema_inicial.png
 │
-├── backend/                       # API REST en .NET
-│   └── MaintixAPI/
-│       ├── Controllers/          # 12 controllers REST 🔥
-│       │   ├── AuthController.cs             # 🔥 NUEVO - Login JWT
-│       │   ├── MantenimientoServiceController.cs # 🔥 NUEVO - Lógica de negocio
-│       │   ├── TipoUsuariosController.cs
-│       │   ├── UsuariosController.cs
-│       │   ├── ProveedoresController.cs
-│       │   ├── TipoMaquinariaController.cs
-│       │   ├── TiposMaquinaController.cs
-│       │   ├── EquipoController.cs           # 🔥 ACTUALIZADO
-│       │   ├── TiposMantenimientoController.cs
-│       │   ├── MantenimientoController.cs
-│       │   ├── ItemMantenimientoController.cs
-│       │   ├── ChecklistMantenimientoController.cs
-│       │   └── HistoricoController.cs
-│       ├── Models/               # 11 entidades actualizadas
-│       │   ├── TipoUsuario.cs
-│       │   ├── Usuario.cs
-│       │   ├── Proveedor.cs
-│       │   ├── TipoMaquinaria.cs
-│       │   ├── TipoMaquina.cs
-│       │   ├── Equipo.cs                    # 🔥 Contadores A/B/C
-│       │   ├── TipoMantenimiento.cs
-│       │   ├── Mantenimiento.cs             # 🔥 OperarioAsignadoId
-│       │   ├── ItemMantenimiento.cs         # 🔥 Campos adicionales
-│       │   ├── ChecklistMantenimiento.cs
-│       │   └── Historico.cs
-│       ├── DTOs/                 # 🔥 NUEVO - Data Transfer Objects
-│       │   ├── LoginDto.cs
-│       │   ├── LoginResponseDto.cs
-│       │   ├── CrearMantenimientoDto.cs
-│       │   ├── CrearMantenimientoMasivoDto.cs
-│       │   ├── AsignarOperarioDto.cs
-│       │   ├── AlertaMantenimientoDto.cs
-│       │   ├── MantenimientoConChecklistDto.cs
-│       │   ├── ActualizarChecklistDto.cs
-│       │   ├── ActualizarHorasDto.cs
-│       │   ├── FinalizarMantenimientoDto.cs
-│       │   └── ChecklistItemDto.cs
-│       ├── Services/             # 🔥 NUEVO - Lógica de negocio
-│       │   ├── IAuthService.cs
-│       │   ├── AuthService.cs
-│       │   ├── IMantenimientoService.cs
-│       │   └── MantenimientoService.cs
-│       ├── Data/
-│       │   └── MaintixDbContext.cs          # DbContext EF Core
-│       ├── Repositories/        # Pattern Repository
-│       │   ├── IEquipoRepository.cs
-│       │   ├── EquipoRepository.cs          # 🔥 Include relations
-│       │   ├── IMantenimientoRepository.cs
-│       │   ├── MantenimientoRepository.cs   # 🔥 Include relations
-│       │   ├── IItemMantenimientoRepository.cs
-│       │   ├── ItemMantenimientoRepository.cs
-│       │   ├── IChecklistMantenimientoRepository.cs
-│       │   └── ChecklistMantenimientoRepository.cs
-│       ├── Program.cs           # 🔥 JWT configurado
-│       └── appsettings.json    # 🔥 JWT settings
+├── Maintix_API/                   # API REST en .NET ✅
+│   ├── Controllers/              # 15 controllers REST
+│   │   ├── AuthController.cs             # Login JWT
+│   │   ├── MantenimientoServiceController.cs # Lógica de negocio
+│   │   ├── TipoUsuarioController.cs
+│   │   ├── UsuarioController.cs
+│   │   ├── ProveedorController.cs
+│   │   ├── TipoMaquinariaController.cs
+│   │   ├── TipoMaquinaController.cs
+│   │   ├── EquipoController.cs
+│   │   ├── TipoMantenimientoController.cs
+│   │   ├── MantenimientoController.cs
+│   │   ├── ItemMantenimientoController.cs
+│   │   ├── ChecklistMantenimientoController.cs
+│   │   ├── HistoricoController.cs
+│   │   ├── HealthController.cs
+│   │   └── WeatherForecastController.cs
+│   │
+│   ├── Models/                   # 11 entidades del dominio
+│   │   ├── TipoUsuario.cs
+│   │   ├── Usuario.cs
+│   │   ├── Proveedor.cs
+│   │   ├── TipoMaquinaria.cs
+│   │   ├── TipoMaquina.cs
+│   │   ├── Equipo.cs
+│   │   ├── TipoMantenimiento.cs
+│   │   ├── Mantenimiento.cs
+│   │   ├── ItemMantenimiento.cs
+│   │   ├── ChecklistMantenimiento.cs
+│   │   └── Historico.cs
+│   │
+│   ├── DTOs/                     # Data Transfer Objects
+│   │   ├── LoginDto.cs
+│   │   ├── CrearMantenimientoDto.cs
+│   │   ├── MantenimientoConChecklistDto.cs
+│   │   ├── ActualizarChecklistDto.cs
+│   │   ├── ActualizarHorasDto.cs
+│   │   ├── FinalizarMantenimientoDto.cs
+│   │   ├── AlertaMantenimientoDto.cs
+│   │   ├── AlertaEquipoDto.cs
+│   │   ├── ChecklistItemDto.cs
+│   │   └── TipoMantenimientoEnum.cs
+│   │
+│   ├── Services/                 # Lógica de negocio
+│   │   ├── IAuthService.cs
+│   │   ├── AuthService.cs
+│   │   ├── IMantenimientoService.cs
+│   │   └── MantenimientoService.cs
+│   │
+│   ├── Data/
+│   │   └── MaintixDbContext.cs   # DbContext EF Core
+│   │
+│   ├── Repositories/             # Pattern Repository
+│   │   ├── IEquipoRepository.cs
+│   │   ├── EquipoRepository.cs
+│   │   ├── IMantenimientoRepository.cs
+│   │   ├── MantenimientoRepository.cs
+│   │   ├── IItemMantenimientoRepository.cs
+│   │   ├── ItemMantenimientoRepository.cs
+│   │   ├── IChecklistMantenimientoRepository.cs
+│   │   ├── ChecklistMantenimientoRepository.cs
+│   │   ├── IHistoricoRepository.cs
+│   │   ├── HistoricoRepository.cs
+│   │   ├── IProveedorRepository.cs
+│   │   ├── ProveedorRepository.cs
+│   │   ├── ITipoMantenimientoRepository.cs
+│   │   ├── TipoMantenimientoRepository.cs
+│   │   ├── ITipoMaquinaRepository.cs
+│   │   ├── TipoMaquinaRepository.cs
+│   │   ├── ITipoMaquinariaRepository.cs
+│   │   ├── TipoMaquinariaRepository.cs
+│   │   ├── ITipoUsuarioRepository.cs
+│   │   ├── TipoUsuarioRepository.cs
+│   │   ├── IUsuarioRepository.cs
+│   │   └── UsuarioRepository.cs
+│   │
+│   ├── Program.cs                # JWT configurado
+│   └── appsettings.json         # JWT settings
 │
-├── mobile/                        # Aplicación Android (Pendiente)
-│   └── MaintixApp/
-│       ├── app/
-│       ├── gradle/
-│       └── build.gradle
+├── MaintixApp/                    # Aplicación Android ✅
+│   ├── app/
+│   │   ├── src/main/
+│   │   │   ├── java/com/tonhete/maintixapp/
+│   │   │   │   ├── MainActivity.kt
+│   │   │   │   │
+│   │   │   │   ├── data/                # Capa de datos
+│   │   │   │   │   ├── ApiService.kt    # Endpoints Retrofit
+│   │   │   │   │   ├── RetrofitClient.kt
+│   │   │   │   │   ├── AppState.kt      # Estado global
+│   │   │   │   │   └── models/          # Modelos de datos
+│   │   │   │   │       ├── Auth.kt
+│   │   │   │   │       ├── Usuario.kt
+│   │   │   │   │       ├── Equipo.kt
+│   │   │   │   │       ├── Mantenimiento.kt
+│   │   │   │   │       ├── ItemMantenimiento.kt
+│   │   │   │   │       ├── CheckListMantenimiento.kt
+│   │   │   │   │       └── Historico.kt
+│   │   │   │   │
+│   │   │   │   └── ui/                  # Interfaz de usuario
+│   │   │   │       ├── components/      # Componentes reutilizables
+│   │   │   │       │   ├── BottomNavBar.kt
+│   │   │   │       │   ├── BottomNavBarAdmin.kt
+│   │   │   │       │   └── ItemDetalleModal.kt
+│   │   │   │       │
+│   │   │   │       ├── navigation/
+│   │   │   │       │   └── NavGraph.kt  # Navegación
+│   │   │   │       │
+│   │   │   │       ├── screens/         # Pantallas principales
+│   │   │   │       │   ├── LoginScreen.kt
+│   │   │   │       │   ├── DashboardScreen.kt        # Técnico
+│   │   │   │       │   ├── DashboardAdminScreen.kt   # Admin
+│   │   │   │       │   ├── MaquinasScreen.kt
+│   │   │   │       │   ├── DetalleEquipoScreen.kt
+│   │   │   │       │   ├── DetalleMantenimientoScreen.kt
+│   │   │   │       │   └── ChecklistScreen.kt
+│   │   │   │       │
+│   │   │   │       └── theme/           # Tema y estilos
+│   │   │   │           ├── Color.kt
+│   │   │   │           ├── Theme.kt
+│   │   │   │           └── Type.kt
+│   │   │   │
+│   │   │   └── res/
+│   │   │       ├── values/
+│   │   │       │   ├── strings.xml
+│   │   │       │   ├── colors.xml
+│   │   │       │   └── themes.xml
+│   │   │       └── xml/
+│   │   │           └── network_security_config.xml
+│   │   │
+│   │   └── build.gradle.kts
+│   │
+│   ├── gradle/
+│   │   └── libs.versions.toml
+│   ├── build.gradle.kts
+│   └── settings.gradle.kts
 │
 ├── infrastructure/                # Configuración de servidor
 │   └── configuracion-servidor.md # Guía de instalación
@@ -166,8 +246,8 @@ POST /api/MantenimientoService/equipo/{equipoId}/actualizar-horas
 
 ### 🔧 Equipos
 ```
-GET    /api/Equipo/resumen          # 🔥 NUEVO - Lista: id, nombre, horas
-GET    /api/Equipo                  # Con relaciones completas
+GET    /api/Equipo/resumen          
+GET    /api/Equipo                  
 GET    /api/Equipo/{id}
 POST   /api/Equipo
 PUT    /api/Equipo/{id}
@@ -214,10 +294,10 @@ Authorization: Bearer {token}
 3. **proveedores** - Proveedores de maquinaria y repuestos
 4. **tipo_maquinaria** - Categorías con umbrales de mantenimiento A/B/C
 5. **tipos_maquina** - Tipos específicos de máquinas
-6. **equipo** - Equipos con contadores de horas (A, B, C) 🔥 ACTUALIZADO
+6. **equipo** - Equipos con contadores de horas (A, B, C) 
 7. **tipos_mantenimiento** - Tipos de mantenimiento (A, B, C)
-8. **mantenimientos** - Registros con estados y operario asignado 🔥 ACTUALIZADO
-9. **items_mantenimiento** - Items con descripción detallada, herramientas e imágenes 🔥 ACTUALIZADO
+8. **mantenimientos** - Registros con estados y operario asignado 
+9. **items_mantenimiento** - Items con descripción detallada, herramientas e imágenes
 10. **checklist_mantenimiento** - Estado de items en cada mantenimiento
 11. **historico** - Histórico de mantenimientos realizados
 
@@ -254,13 +334,15 @@ dotnet run
 
 ## Próximos Pasos
 
-1. ~~📱 Desarrollo de la aplicación Android~~ 🔨 **EN PROGRESO**
-2. ~~🔐 Implementación de autenticación JWT~~ ✅ **COMPLETADO**
-3. 🔗 Integración API con aplicación móvil
-4. 🧪 Testing end-to-end
-5. 🚀 Despliegue en IIS
-6. 📊 Dashboard de estadísticas (opcional)
-7. 🔔 Sistema de notificaciones push (opcional)
+1. 🔨 **Refinamiento UI/UX de la aplicación Android**
+2. 🔨 **Despieces y documentación técnica por equipo**
+3. 🔨 **Sistema de adjuntar fotografías en mantenimientos**
+4. 🔨 **Internacionalización (ES/EN/EU)**
+5. 🧪 **Testing y refactorización**
+6. 📚 **Documentación final**
+7. 🚀 **Despliegue en producción**
+8. 📊 Dashboard de estadísticas (opcional)
+9. 🔔 Sistema de notificaciones push (opcional)
 
 ## Autor
 

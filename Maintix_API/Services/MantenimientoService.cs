@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Maintix_API.Data;
 using Maintix_API.DTOs;
 using Maintix_API.Models;
+using System.Linq;
 
 namespace Maintix_API.Services
 {
@@ -20,9 +21,8 @@ namespace Maintix_API.Services
             var equipo = await _context.Equipos.FindAsync(equipoId);
             if (equipo == null) return false;
 
-            // Calcular incremento de horas
             int incremento = horasNuevas - equipo.HorasActuales;
-            if (incremento < 0) return false; // No permitir retroceder horas
+            if (incremento < 0) return false;
 
             equipo.HorasActuales = horasNuevas;
             equipo.ContadorTipoA += incremento;
@@ -33,7 +33,7 @@ namespace Maintix_API.Services
             return true;
         }
 
-        // Verificar alertas de mantenimiento
+        // Verificar alertas para un equipo
         public async Task<AlertaMantenimientoDto?> VerificarAlertasEquipoAsync(int equipoId)
         {
             var equipo = await _context.Equipos
@@ -44,26 +44,14 @@ namespace Maintix_API.Services
 
             var alertas = new List<string>();
 
-            // Verificar si necesita Mantenimiento A
-            if (equipo.TipoMaquinaria?.MantenimientoA != null && 
-                equipo.ContadorTipoA >= equipo.TipoMaquinaria.MantenimientoA)
-            {
+            if (equipo.TipoMaquinaria?.MantenimientoA != null && equipo.ContadorTipoA >= equipo.TipoMaquinaria.MantenimientoA)
                 alertas.Add("Tipo A");
-            }
 
-            // Verificar si necesita Mantenimiento B
-            if (equipo.TipoMaquinaria?.MantenimientoB != null && 
-                equipo.ContadorTipoB >= equipo.TipoMaquinaria.MantenimientoB)
-            {
+            if (equipo.TipoMaquinaria?.MantenimientoB != null && equipo.ContadorTipoB >= equipo.TipoMaquinaria.MantenimientoB)
                 alertas.Add("Tipo B");
-            }
 
-            // Verificar si necesita Mantenimiento C
-            if (equipo.TipoMaquinaria?.MantenimientoC != null && 
-                equipo.ContadorTipoC >= equipo.TipoMaquinaria.MantenimientoC)
-            {
+            if (equipo.TipoMaquinaria?.MantenimientoC != null && equipo.ContadorTipoC >= equipo.TipoMaquinaria.MantenimientoC)
                 alertas.Add("Tipo C");
-            }
 
             return new AlertaMantenimientoDto
             {
@@ -78,16 +66,12 @@ namespace Maintix_API.Services
         // Crear mantenimiento con checklist
         public async Task<MantenimientoConChecklistDto?> CrearMantenimientoConChecklistAsync(CrearMantenimientoDto dto)
         {
-            var equipo = await _context.Equipos
-                .Include(e => e.TipoMaquinaria)
-                .FirstOrDefaultAsync(e => e.Id == dto.EquipoId);
-
+            var equipo = await _context.Equipos.FindAsync(dto.EquipoId);
             if (equipo == null) return null;
 
             var tipoMantenimiento = await _context.TiposMantenimiento.FindAsync(dto.TipoMantenimientoId);
             if (tipoMantenimiento == null) return null;
 
-            // Crear el mantenimiento
             var mantenimiento = new Mantenimiento
             {
                 EquipoId = dto.EquipoId,
@@ -99,20 +83,14 @@ namespace Maintix_API.Services
             _context.Mantenimientos.Add(mantenimiento);
             await _context.SaveChangesAsync();
 
-            // Obtener los items del checklist para este tipo de máquina y tipo de mantenimiento
-            Console.WriteLine($"Buscando items: TipoMaquinariaId={equipo.TipoMaquinariaId}, TipoMantenimientoId={dto.TipoMantenimientoId}");
-            
+            // Obtener items template para el tipo de máquina y tipo de mantenimiento
             var itemsTemplate = await _context.ItemsMantenimiento
-                .Where(i => i.TipoMaquinaId == equipo.TipoMaquinariaId && 
-                           i.TipoMantenimientoId == dto.TipoMantenimientoId)
+                .Where(i => i.TipoMaquinaId == equipo.TipoMaquinariaId && i.TipoMantenimientoId == dto.TipoMantenimientoId)
                 .OrderBy(i => i.Orden)
                 .ToListAsync();
 
-            Console.WriteLine($"Items encontrados: {itemsTemplate.Count}");
-
             var checklistItems = new List<ChecklistItemDto>();
 
-            // Crear los items del checklist para este mantenimiento
             foreach (var item in itemsTemplate)
             {
                 var checklistItem = new ChecklistMantenimiento
@@ -141,7 +119,7 @@ namespace Maintix_API.Services
             return new MantenimientoConChecklistDto
             {
                 MantenimientoId = mantenimiento.Id,
-                EquipoId = equipo.Id,
+                EquipoId = mantenimiento.EquipoId,
                 NumeroSerie = equipo.NumeroSerie,
                 TipoMantenimiento = tipoMantenimiento.Nombre,
                 FechaInicio = mantenimiento.FechaInicio,
@@ -170,62 +148,65 @@ namespace Maintix_API.Services
             return true;
         }
 
-        // Finalizar mantenimiento
-        public async Task<bool> FinalizarMantenimientoAsync(int mantenimientoId, FinalizarMantenimientoDto dto)
+        // Finalizar mantenimiento (añade histórico)
+        public async Task<Historico?> FinalizarMantenimientoAsync(int mantenimientoId, FinalizarMantenimientoDto dto)
         {
             var mantenimiento = await _context.Mantenimientos
                 .Include(m => m.Equipo)
+                    .ThenInclude(e => e.TipoMaquinaria)
+                .Include(m => m.TipoMantenimiento)
                 .FirstOrDefaultAsync(m => m.Id == mantenimientoId);
 
-            if (mantenimiento == null) return false;
+            if (mantenimiento == null) return null;
 
-            // Actualizar el mantenimiento
             mantenimiento.FechaFin = DateTime.Now;
             mantenimiento.Estado = "finalizado";
 
-            // Obtener el nombre del usuario
             var usuario = await _context.Usuarios.FindAsync(dto.UsuarioId);
             var nombreOperario = usuario?.Email ?? "Desconocido";
 
-            // Crear registro en histórico
             var historico = new Historico
             {
                 EquipoId = mantenimiento.EquipoId,
-                HorasMaquina = mantenimiento.Equipo.HorasActuales,
+                HorasMaquina = mantenimiento.Equipo?.HorasActuales,
                 Clase = ObtenerClaseMantenimiento(mantenimiento.TipoMantenimientoId),
                 Operario = nombreOperario,
                 Incidencias = dto.Incidencias,
                 Finalizado = true
             };
 
+            // Asignar los metadatos en memoria (NotMapped) para devolverlos en la respuesta
+            historico.FechaMantenimiento = mantenimiento.FechaInicio;
+            historico.FechaFinalizacion = mantenimiento.FechaFin;
+            historico.EquipoNumeroSerie = mantenimiento.Equipo?.NumeroSerie;
+            historico.TipoMantenimientoNombre = mantenimiento.TipoMantenimiento?.Nombre;
+
             _context.Historico.Add(historico);
 
-            // Resetear el contador correspondiente según el tipo de mantenimiento
-            var tipoMant = await _context.TiposMantenimiento.FindAsync(mantenimiento.TipoMantenimientoId);
+            // Resetear contadores según tipo de mantenimiento
+            var tipoMant = mantenimiento.TipoMantenimiento;
             if (tipoMant != null && mantenimiento.Equipo != null)
             {
-                switch (tipoMant.Nombre.ToUpper())
+                var clase = ObtenerClaseMantenimiento(mantenimiento.TipoMantenimientoId);
+                switch (clase)
                 {
                     case "A":
-                    case "TIPO A":
                         mantenimiento.Equipo.ContadorTipoA = 0;
                         break;
                     case "B":
-                    case "TIPO B":
                         mantenimiento.Equipo.ContadorTipoB = 0;
                         break;
                     case "C":
-                    case "TIPO C":
                         mantenimiento.Equipo.ContadorTipoC = 0;
                         break;
                 }
             }
 
             await _context.SaveChangesAsync();
-            return true;
+            return historico;
         }
 
-        // Obtener mantenimiento con checklist
+        // Obtener mantenimiento con checklist (para detalle)
         public async Task<MantenimientoConChecklistDto?> ObtenerMantenimientoConChecklistAsync(int mantenimientoId)
         {
             var mantenimiento = await _context.Mantenimientos
@@ -265,22 +246,7 @@ namespace Maintix_API.Services
             };
         }
 
-        // Helper: Obtener clase de mantenimiento
-        private string? ObtenerClaseMantenimiento(int tipoMantenimientoId)
-        {
-            var tipo = _context.TiposMantenimiento.Find(tipoMantenimientoId);
-            if (tipo == null) return null;
-
-            return tipo.Nombre.ToUpper() switch
-            {
-                "A" or "TIPO A" => "A",
-                "B" or "TIPO B" => "B",
-                "C" or "TIPO C" => "C",
-                _ => null
-            };
-        }
-
-        // VERIFICAR ALERTAS DE TODOS LOS EQUIPOS
+        // Verificar alertas de todos los equipos
         public async Task<List<AlertaMantenimientoDto>> VerificarTodasAlertasAsync()
         {
             var equipos = await _context.Equipos
@@ -293,24 +259,17 @@ namespace Maintix_API.Services
             {
                 if (equipo.TipoMaquinaria == null) continue;
 
-                var mantenimientosPendientes = new List<string>();
-                var razones = new List<string>();
-
-                // Obtener mantenimientos pendientes de este equipo
                 var mantenimientosPendientesIds = await _context.Mantenimientos
-                    .Where(m => m.EquipoId == equipo.Id && 
-                               (m.Estado == "pendiente" || m.Estado == "pendiente_asignacion"))
+                    .Where(m => m.EquipoId == equipo.Id && (m.Estado == "pendiente" || m.Estado == "pendiente_asignacion"))
                     .Select(m => m.TipoMantenimientoId)
                     .ToListAsync();
 
-                // Verificar Mantenimiento A
-                if (equipo.TipoMaquinaria.MantenimientoA > 0 && 
-                    equipo.ContadorTipoA >= equipo.TipoMaquinaria.MantenimientoA)
+                var mantenimientosPendientes = new List<string>();
+                var razones = new List<string>();
+
+                if (equipo.TipoMaquinaria.MantenimientoA > 0 && equipo.ContadorTipoA >= equipo.TipoMaquinaria.MantenimientoA)
                 {
-                    // Buscar ID de tipo mantenimiento A
-                    var tipoA = await _context.TiposMantenimiento
-                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("A"));
-                    
+                    var tipoA = await _context.TiposMantenimiento.FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("A"));
                     if (tipoA != null && !mantenimientosPendientesIds.Contains(tipoA.Id))
                     {
                         mantenimientosPendientes.Add("Tipo A");
@@ -318,13 +277,9 @@ namespace Maintix_API.Services
                     }
                 }
 
-                // Verificar Mantenimiento B
-                if (equipo.TipoMaquinaria.MantenimientoB > 0 && 
-                    equipo.ContadorTipoB >= equipo.TipoMaquinaria.MantenimientoB)
+                if (equipo.TipoMaquinaria.MantenimientoB > 0 && equipo.ContadorTipoB >= equipo.TipoMaquinaria.MantenimientoB)
                 {
-                    var tipoB = await _context.TiposMantenimiento
-                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("B"));
-                    
+                    var tipoB = await _context.TiposMantenimiento.FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("B"));
                     if (tipoB != null && !mantenimientosPendientesIds.Contains(tipoB.Id))
                     {
                         mantenimientosPendientes.Add("Tipo B");
@@ -332,13 +287,9 @@ namespace Maintix_API.Services
                     }
                 }
 
-                // Verificar Mantenimiento C
-                if (equipo.TipoMaquinaria.MantenimientoC > 0 && 
-                    equipo.ContadorTipoC >= equipo.TipoMaquinaria.MantenimientoC)
+                if (equipo.TipoMaquinaria.MantenimientoC > 0 && equipo.ContadorTipoC >= equipo.TipoMaquinaria.MantenimientoC)
                 {
-                    var tipoC = await _context.TiposMantenimiento
-                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("C"));
-                    
+                    var tipoC = await _context.TiposMantenimiento.FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains("C"));
                     if (tipoC != null && !mantenimientosPendientesIds.Contains(tipoC.Id))
                     {
                         mantenimientosPendientes.Add("Tipo C");
@@ -346,7 +297,6 @@ namespace Maintix_API.Services
                     }
                 }
 
-                // Solo agregar si hay alertas
                 if (mantenimientosPendientes.Any())
                 {
                     alertas.Add(new AlertaMantenimientoDto
@@ -363,7 +313,7 @@ namespace Maintix_API.Services
             return alertas;
         }
 
-        // CREAR MANTENIMIENTOS MASIVOS
+        // Crear mantenimientos masivos
         public async Task<List<MantenimientoConChecklistDto>> CrearMantenimientosMasivosAsync(CrearMantenimientoMasivoDto dto)
         {
             var resultados = new List<MantenimientoConChecklistDto>();
@@ -386,7 +336,7 @@ namespace Maintix_API.Services
             return resultados;
         }
 
-        // ASIGNAR OPERARIO
+        // Asignar operario
         public async Task<bool> AsignarOperarioAsync(int mantenimientoId, int operarioId)
         {
             var mantenimiento = await _context.Mantenimientos.FindAsync(mantenimientoId);
@@ -400,6 +350,21 @@ namespace Maintix_API.Services
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // Helper: determinar clase A/B/C a partir del nombre del tipo
+        private string? ObtenerClaseMantenimiento(int tipoMantenimientoId)
+        {
+            var tipo = _context.TiposMantenimiento.Find(tipoMantenimientoId);
+            if (tipo == null) return null;
+
+            return tipo.Nombre.ToUpper() switch
+            {
+                "A" or "TIPO A" => "A",
+                "B" or "TIPO B" => "B",
+                "C" or "TIPO C" => "C",
+                _ => null
+            };
         }
     }
 }

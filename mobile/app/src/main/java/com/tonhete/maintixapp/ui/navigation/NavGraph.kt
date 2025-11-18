@@ -1,5 +1,7 @@
 package com.tonhete.maintixapp.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.navigation.NavType
@@ -10,8 +12,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tonhete.maintixapp.data.appState
 import com.tonhete.maintixapp.ui.components.MainScaffold
+import com.tonhete.maintixapp.ui.components.MainScaffoldAdmin
 import com.tonhete.maintixapp.ui.screens.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -22,6 +26,7 @@ fun AppNavigation() {
         navController = navController,
         startDestination = "login"
     ) {
+        // Login
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { tipoUsuarioId ->
@@ -40,7 +45,7 @@ fun AppNavigation() {
             )
         }
 
-
+        // Dashboard Técnico
         composable("dashboard") {
             MainScaffold(
                 currentRoute = currentRoute,
@@ -55,10 +60,7 @@ fun AppNavigation() {
             }
         }
 
-        composable("dashboard_admin") {
-            DashboardAdminScreen()
-        }
-
+        // Perfil Técnico
         composable("perfil") {
             MainScaffold(
                 currentRoute = currentRoute,
@@ -69,6 +71,7 @@ fun AppNavigation() {
             }
         }
 
+        // Detalle Mantenimiento (Técnico)
         composable(
             route = "detalle/{mantenimientoId}",
             arguments = listOf(navArgument("mantenimientoId") { type = NavType.IntType })
@@ -91,6 +94,7 @@ fun AppNavigation() {
             }
         }
 
+        // Checklist Técnico (editable)
         composable(
             route = "checklist/{mantenimientoId}",
             arguments = listOf(navArgument("mantenimientoId") { type = NavType.IntType })
@@ -104,9 +108,77 @@ fun AppNavigation() {
             ) {
                 ChecklistScreen(
                     mantenimientoId = mantenimientoId,
+                    navController = navController,
+                    soloLectura = false
+                )
+            }
+        }
+
+        // Dashboard Admin
+        composable("dashboard_admin") {
+            MainScaffoldAdmin(
+                currentRoute = currentRoute,
+                onNavigate = { navController.navigate(it) }
+            ) {
+                DashboardAdminScreen(navController = navController)
+            }
+        }
+
+        // Checklist Admin (solo lectura)
+        composable(
+            route = "admin/checklist/{mantenimientoId}",
+            arguments = listOf(navArgument("mantenimientoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val mantenimientoId = backStackEntry.arguments?.getInt("mantenimientoId") ?: 0
+
+            MainScaffoldAdmin(
+                currentRoute = currentRoute,
+                onNavigate = { navController.navigate(it) }
+            ) {
+                ChecklistScreen(
+                    mantenimientoId = mantenimientoId,
+                    navController = navController,
+                    soloLectura = true
+                )
+            }
+        }
+
+        composable("maquinas_admin") {
+            MainScaffoldAdmin(
+                currentRoute = currentRoute,
+                onNavigate = { navController.navigate(it) }
+            ) {
+                MaquinasScreen(navController = navController)
+            }
+        }
+
+        // Detalle Equipo Admin
+        composable(
+            route = "detalle_equipo/{equipoId}",
+            arguments = listOf(navArgument("equipoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val equipoId = backStackEntry.arguments?.getInt("equipoId") ?: 0
+
+            MainScaffoldAdmin(
+                currentRoute = currentRoute,
+                onNavigate = { navController.navigate(it) }
+            ) {
+                DetalleEquipoScreen(
+                    equipoId = equipoId,
                     navController = navController
                 )
             }
         }
+
+        // Perfil Admin
+        composable("perfil_admin") {
+            MainScaffoldAdmin(
+                currentRoute = currentRoute,
+                onNavigate = { navController.navigate(it) }
+            ) {
+                Text("Perfil Admin - Próximamente")
+            }
+        }
     }
 }
+

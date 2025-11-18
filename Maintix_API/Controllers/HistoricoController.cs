@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Maintix_API.Models;
 using Maintix_API.Repositories;
+using System.Linq;
 
 namespace Maintix_API.Controllers
 {
@@ -19,6 +20,14 @@ namespace Maintix_API.Controllers
         public async Task<ActionResult<IEnumerable<Historico>>> GetAll()
         {
             var items = await _repository.GetAllAsync();
+            return Ok(items);
+        }
+
+        [HttpGet("equipo/{equipoId}")]
+        public async Task<ActionResult<IEnumerable<Historico>>> GetByEquipo(int equipoId)
+        {
+            var items = await _repository.GetByEquipoIdAsync(equipoId);
+            if (items == null || !items.Any()) return NotFound();
             return Ok(items);
         }
 

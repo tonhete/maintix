@@ -11,7 +11,7 @@ import com.tonhete.maintixapp.R
 // Set of Material typography styles to start with
 
 val ConsolasFont = FontFamily(
-    Font(R.font.consolas),
+    Font(R.font.consolas)
 )
 
 val Typography = Typography(

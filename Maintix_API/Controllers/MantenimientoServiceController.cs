@@ -65,8 +65,8 @@ namespace Maintix_API.Controllers
         public async Task<ActionResult> FinalizarMantenimiento(int mantenimientoId, [FromBody] FinalizarMantenimientoDto dto)
         {
             var result = await _service.FinalizarMantenimientoAsync(mantenimientoId, dto);
-            if (!result) return NotFound("Mantenimiento no encontrado");
-            return Ok(new { message = "Mantenimiento finalizado correctamente" });
+            if (result == null) return NotFound("Mantenimiento no encontrado");
+            return Ok(result);
         }
 
         // GET: api/MantenimientoService/alertas/todas

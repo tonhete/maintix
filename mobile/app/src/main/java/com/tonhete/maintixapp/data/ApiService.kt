@@ -13,6 +13,10 @@ interface ApiService {
     @GET("api/Usuario/{id}")
     suspend fun getUsuario(@Path("id") id: Int): Response<Usuario>
 
+    // Obtener todos los usuarios (para filtrar técnicos)
+    @GET("api/Usuario")
+    suspend fun getUsuarios(): Response<List<Usuario>>
+
     // ========== MANTENIMIENTOS ==========
     @GET("api/Mantenimiento")
     suspend fun getMantenimientos(): Response<List<Mantenimiento>>
@@ -31,9 +35,26 @@ interface ApiService {
         @Body mantenimiento: Mantenimiento
     ): Response<Mantenimiento>
 
+    // Asignar operario a mantenimiento
+    @PUT("api/MantenimientoService/{mantenimientoId}/asignar-operario")
+    suspend fun asignarOperario(
+        @Path("mantenimientoId") mantenimientoId: Int,
+        @Body body: AsignarOperarioDto
+    ): Response<Unit>
+
     // ========== EQUIPOS ==========
     @GET("api/Equipo/{id}")
     suspend fun getEquipo(@Path("id") id: Int): Response<Equipo>
+
+    // Obtener todos los equipos
+    @GET("api/Equipo")
+    suspend fun getEquipos(): Response<List<Equipo>>
+
+    @POST("api/MantenimientoService/equipo/{equipoId}/actualizar-horas")
+    suspend fun actualizarHorasEquipo(
+        @Path("equipoId") equipoId: Int,
+        @Body dto: ActualizarHorasDto
+    ): Response<Unit>
 
     // ========== CHECKLIST ==========
     @GET("api/MantenimientoService/{mantenimientoId}/checklist")
@@ -65,6 +86,18 @@ interface ApiService {
     // ========== ITEMS MANTENIMIENTO (catálogo) ==========
     @GET("api/ItemMantenimiento")
     suspend fun getItemsMantenimiento(): Response<List<ItemMantenimiento>>
+
+    // Histórico
+    @GET("api/Historico/equipo/{equipoId}")
+    suspend fun getHistoricoEquipo(@Path("equipoId") equipoId: Int): Response<List<Historico>>
+
+    // Proveedores
+    @GET("api/Proveedor/{id}")
+    suspend fun getProveedor(@Path("id") id: Int): Response<Proveedor>
+
+    @GET("api/Proveedor")
+    suspend fun getProveedores(): Response<List<Proveedor>>
+
 
 
 }

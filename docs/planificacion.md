@@ -2,9 +2,9 @@
 
 ## Resumen
 
-- **Duración total:** 104 horas
+- **Duración total:** 134 horas
 - **Fecha inicio:** 21 de septiembre de 2025
-- **Fecha finalización:** 1 de diciembre de 2025
+- **Fecha finalización:** 15 de diciembre de 2025
 
 ---
 
@@ -48,16 +48,21 @@
 - Testing con Swagger UI
 - Configuración de CORS y JWT
 
-### FASE 5: Aplicación Android - 32 horas 🔨
-**Fechas:** 06/11/2025 - 25/11/2025
+### FASE 5: Aplicación Android - 62 horas 🔨
+**Fechas:** 06/11/2025 - 10/12/2025
 
 - ✅ Setup proyecto Android Studio
-- 🔨 Integración con API y conexión
-- 🔨 Diseño UI/UX de la aplicación
-- 🔨 Funcionalidades principales (listas, detalle, checklist)
-- 🔨 Sistema de login y autenticación
-- ⏳ Gestión de estados y navegación
-- ⏳ Testing en dispositivo físico
+- ✅ Integración con API y conexión
+- ✅ Diseño UI/UX básico de la aplicación
+- ✅ Funcionalidades principales (listas, detalle, checklist)
+- ✅ Sistema de login y autenticación
+- ✅ Gestión de equipos y actualización de horas
+- 🔨 Refinamiento UI/UX (10h)
+- 🔨 Despieces y documentación técnica (4h)
+- 🔨 Sistema de adjuntar fotografías (6h)
+- 🔨 Internacionalización ES/EN/EU (4h)
+- ⏳ Refactorización y optimización (6h)
+- ⏳ Testing en dispositivo físico (4h)
 
 ### FASE 6: Documentación Final - 4 horas
 **Fechas:** 26/11/2025 - 01/12/2025
@@ -77,31 +82,34 @@
 | Infraestructura operativa | 18/10/2025 | ✅ |
 | Base de datos funcional | 01/11/2025 | ✅ |
 | API REST completa | 15/11/2025 | ✅ |
-| App móvil funcional | 25/11/2025 | 🔨 |
-| Documentación completa | 01/12/2025 | ⏳ |
+| App móvil funcional | 10/12/2025 | 🔨 |
+| Documentación completa | 15/12/2025 | ⏳ |
 
 ---
 
 ## Progreso Actual
 
-**Horas completadas:** 68 de 104 horas (65%)
+**Horas completadas:** 98 de 134 horas (73%)
 
 - ✅ Fase 1: Análisis y Diseño - 8h
 - ✅ Fase 2: Infraestructura - 12h  
 - ✅ Fase 3: Base de Datos - 8h
 - ✅ Fase 4: Backend API REST - 40h
-  - ✅ CRUD básico - 10h
-  - ✅ Sistema de alertas - 3h
-  - ✅ Gestión masiva - 2h
-  - ✅ Asignación operarios - 2h
-  - ✅ Autenticación JWT - 8h
-  - ✅ Servicios y DTOs - 5h
-  - ✅ Documentación y ajustes - 10h
-- 🔨 Fase 5: Aplicación Android - 5/32h (primeras pantallas)
+- 🔨 Fase 5: Aplicación Android - 30/62h
+  - ✅ Setup y arquitectura base - 6h
+  - ✅ Autenticación y dashboards - 6h
+  - ✅ Gestión de mantenimientos - 10h
+  - ✅ Gestión de equipos - 8h
+  - 🔨 Refinamiento UI/UX - 0/10h
+  - 🔨 Despieces - 0/4h
+  - 🔨 Sistema de fotografías - 0/6h
+  - 🔨 Internacionalización - 0/4h
+  - ⏳ Refactorización - 0/6h
+  - ⏳ Testing - 0/4h
 - ⏳ Fase 6: Documentación Final - 0/4h
 
-**Fase actual:** Aplicación Android (en desarrollo activo)  
-**Próximo hito:** App móvil funcional (25/11/2025)
+**Fase actual:** Aplicación Android (refinamiento y nuevas funcionalidades)  
+**Próximo hito:** App móvil completa (10/12/2025)
 
 ---
 
@@ -125,5 +133,3 @@
 | Complejidad Android | Simplificar UI inicial | ⏳ |
 
 ---
-
-

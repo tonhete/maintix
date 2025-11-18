@@ -20,6 +20,7 @@ data class Equipo(
 
     @SerializedName("tipoMaquinaria")
     val tipoMaquinaria: TipoMaquinaria?
+
 )
 
 data class TipoMaquinaria(
@@ -27,5 +28,19 @@ data class TipoMaquinaria(
     val id: Int,
 
     @SerializedName("descripcion")
-    val descripcion: String
+    val descripcion: String,
+
+    @SerializedName("proveedorId")
+    val proveedorId: Int?
+)
+
+data class ActualizarHorasDto(
+    @SerializedName("horasNuevas") val horasNuevas: Int
+)
+
+data class Proveedor(
+    @SerializedName("id") val id: Int,
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("tlf") val tlf: String?,
+    @SerializedName("direccion") val direccion: String?
 )

@@ -15,20 +15,54 @@ namespace Maintix_API.Repositories
 
         public async Task<IEnumerable<Mantenimiento>> GetAllAsync()
         {
-            return await _context.Mantenimientos
+            var list = await _context.Mantenimientos
                 .Include(m => m.Equipo)
                     .ThenInclude(e => e.TipoMaquinaria)
                 .Include(m => m.TipoMantenimiento)
                 .ToListAsync();
+
+            // Rellenar campos no mapeados
+            foreach (var m in list)
+            {
+                m.NumeroSerie = m.Equipo?.NumeroSerie;
+                m.HorasActuales = m.Equipo?.HorasActuales ?? 0;
+                m.TipoMaquinariaInfo = m.Equipo?.TipoMaquinaria;
+                m.MaquinaNombre = m.Equipo?.TipoMaquinaria?.Descripcion;
+                
+                // ProgresoChecklist: calcular con subconsulta (eficiente)
+                var totals = await _context.ChecklistMantenimiento
+                    .Where(c => c.MantenimientoId == m.Id)
+                    .Select(c => c.Completado ? 1 : 0)
+                    .ToListAsync();
+
+                m.ProgresoChecklist = totals.Count == 0 ? 0.0 : totals.Average();
+            }
+
+            return list;
         }
 
         public async Task<Mantenimiento?> GetByIdAsync(int id)
         {
-            return await _context.Mantenimientos
-                .Include(m => m.Equipo)
+            var m = await _context.Mantenimientos
+                .Include(x => x.Equipo)
                     .ThenInclude(e => e.TipoMaquinaria)
-                .Include(m => m.TipoMantenimiento)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .Include(x => x.TipoMantenimiento)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (m == null) return null;
+
+            m.NumeroSerie = m.Equipo?.NumeroSerie;
+            m.HorasActuales = m.Equipo?.HorasActuales ?? 0;
+            m.TipoMaquinariaInfo = m.Equipo?.TipoMaquinaria;
+            m.MaquinaNombre = m.Equipo?.TipoMaquinaria?.Descripcion;
+
+            var totals = await _context.ChecklistMantenimiento
+                .Where(c => c.MantenimientoId == m.Id)
+                .Select(c => c.Completado ? 1 : 0)
+                .ToListAsync();
+            m.ProgresoChecklist = totals.Count == 0 ? 0.0 : totals.Average();
+
+            return m;
         }
 
         public async Task<Mantenimiento> CreateAsync(Mantenimiento mantenimiento)
@@ -63,31 +97,56 @@ namespace Maintix_API.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        // Método solicitado: obtener mantenimientos por técnico (una sola consulta por mantenimiento para totals)
         public async Task<List<Mantenimiento>> GetMantenimientosByTecnicoAsync(int tecnicoId)
         {
-            var q = await _context.Mantenimientos
+            // Cargar mantenimientos del técnico con equipo y tipo maquinaria
+            var items = await _context.Mantenimientos
                 .Where(m => m.OperarioAsignadoId == tecnicoId)
-                .Select(m => new
-                {
-                    Mantenimiento = m,
-                    Total = _context.ChecklistMantenimiento.Count(c => c.MantenimientoId == m.Id),
-                    Completed = _context.ChecklistMantenimiento.Count(c => c.MantenimientoId == m.Id && c.Completado)
-                })
+                .Include(m => m.Equipo)
+                    .ThenInclude(e => e.TipoMaquinaria)
+                .Include(m => m.TipoMantenimiento)
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Asignar el progreso a las entidades y devolver la entidad Mantenimiento
-            var result = new List<Mantenimiento>();
-            foreach (var x in q)
+            if (!items.Any()) return new List<Mantenimiento>();
+
+            // Obtener conteos (total y completados) para todos los mantenimientos de forma agregada
+            var mantenimientoIds = items.Select(m => m.Id).ToList();
+
+            var counts = await _context.ChecklistMantenimiento
+                .Where(c => mantenimientoIds.Contains(c.MantenimientoId))
+                .GroupBy(c => c.MantenimientoId)
+                .Select(g => new
+                {
+                    MantenimientoId = g.Key,
+                    Total = g.Count(),
+                    Completed = g.Count(ci => ci.Completado)
+                })
+                .ToListAsync();
+
+            var dict = counts.ToDictionary(x => x.MantenimientoId, x => (x.Total, x.Completed));
+
+            // Asignar progreso y datos de equipo/tipo maquinaria
+            foreach (var m in items)
             {
-                var m = x.Mantenimiento;
-                var total = x.Total;
-                var completed = x.Completed;
-                m.ProgresoChecklist = total == 0 ? 0.0 : (double)completed / total;
-                result.Add(m);
+                m.NumeroSerie = m.Equipo?.NumeroSerie;
+                m.HorasActuales = m.Equipo?.HorasActuales ?? 0;
+                m.TipoMaquinariaInfo = m.Equipo?.TipoMaquinaria;
+                m.MaquinaNombre = m.Equipo?.TipoMaquinaria?.Descripcion;
+
+                if (dict.TryGetValue(m.Id, out var val) && val.Total > 0)
+                {
+                    m.ProgresoChecklist = (double)val.Completed / val.Total;
+                }
+                else
+                {
+                    m.ProgresoChecklist = 0.0;
+                }
             }
 
-            return result;
+            return items;
         }
     }
 }

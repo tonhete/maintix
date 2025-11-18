@@ -15,12 +15,104 @@ namespace Maintix_API.Repositories
 
         public async Task<IEnumerable<Historico>> GetAllAsync()
         {
-            return await _context.Historico.ToListAsync();
+            var list = await _context.Historico.ToListAsync();
+
+            foreach (var h in list)
+            {
+                // Equipo numero de serie
+                h.EquipoNumeroSerie = await _context.Equipos
+                    .Where(e => e.Id == h.EquipoId)
+                    .Select(e => e.NumeroSerie)
+                    .FirstOrDefaultAsync();
+
+                // Tipo mantenimiento por clase (A/B/C) heurística
+                if (!string.IsNullOrEmpty(h.Clase))
+                {
+                    var tipo = await _context.TiposMantenimiento
+                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains(h.Clase.ToUpper()));
+                    h.TipoMantenimientoNombre = tipo?.Nombre;
+                }
+
+                // Intentar recuperar fechas desde el mantenimiento más reciente de ese equipo
+                var mantenimiento = await _context.Mantenimientos
+                    .Where(m => m.EquipoId == h.EquipoId && m.FechaFin != null)
+                    .OrderByDescending(m => m.FechaFin)
+                    .FirstOrDefaultAsync();
+
+                if (mantenimiento != null)
+                {
+                    h.FechaMantenimiento = mantenimiento.FechaInicio;
+                    h.FechaFinalizacion = mantenimiento.FechaFin;
+                }
+            }
+
+            return list;
+        }
+
+        public async Task<IEnumerable<Historico>> GetByEquipoIdAsync(int equipoId)
+        {
+            var list = await _context.Historico
+                .Where(h => h.EquipoId == equipoId)
+                .ToListAsync();
+
+            foreach (var h in list)
+            {
+                h.EquipoNumeroSerie = await _context.Equipos
+                    .Where(e => e.Id == h.EquipoId)
+                    .Select(e => e.NumeroSerie)
+                    .FirstOrDefaultAsync();
+
+                if (!string.IsNullOrEmpty(h.Clase))
+                {
+                    var tipo = await _context.TiposMantenimiento
+                        .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains(h.Clase.ToUpper()));
+                    h.TipoMantenimientoNombre = tipo?.Nombre;
+                }
+
+                var mantenimiento = await _context.Mantenimientos
+                    .Where(m => m.EquipoId == h.EquipoId && m.FechaFin != null)
+                    .OrderByDescending(m => m.FechaFin)
+                    .FirstOrDefaultAsync();
+
+                if (mantenimiento != null)
+                {
+                    h.FechaMantenimiento = mantenimiento.FechaInicio;
+                    h.FechaFinalizacion = mantenimiento.FechaFin;
+                }
+            }
+
+            return list;
         }
 
         public async Task<Historico?> GetByIdAsync(int id)
         {
-            return await _context.Historico.FindAsync(id);
+            var h = await _context.Historico.FindAsync(id);
+            if (h == null) return null;
+
+            h.EquipoNumeroSerie = await _context.Equipos
+                .Where(e => e.Id == h.EquipoId)
+                .Select(e => e.NumeroSerie)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(h.Clase))
+            {
+                var tipo = await _context.TiposMantenimiento
+                    .FirstOrDefaultAsync(t => t.Nombre.ToUpper().Contains(h.Clase.ToUpper()));
+                h.TipoMantenimientoNombre = tipo?.Nombre;
+            }
+
+            var mantenimiento = await _context.Mantenimientos
+                .Where(m => m.EquipoId == h.EquipoId && m.FechaFin != null)
+                .OrderByDescending(m => m.FechaFin)
+                .FirstOrDefaultAsync();
+
+            if (mantenimiento != null)
+            {
+                h.FechaMantenimiento = mantenimiento.FechaInicio;
+                h.FechaFinalizacion = mantenimiento.FechaFin;
+            }
+
+            return h;
         }
 
         public async Task<Historico> CreateAsync(Historico historico)

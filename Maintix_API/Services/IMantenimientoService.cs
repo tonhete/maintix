@@ -8,7 +8,7 @@ namespace Maintix_API.Services
         Task<AlertaMantenimientoDto?> VerificarAlertasEquipoAsync(int equipoId);
         Task<MantenimientoConChecklistDto?> CrearMantenimientoConChecklistAsync(CrearMantenimientoDto dto);
         Task<bool> ActualizarChecklistAsync(int mantenimientoId, ActualizarChecklistDto dto);
-        Task<bool> FinalizarMantenimientoAsync(int mantenimientoId, FinalizarMantenimientoDto dto);
+        Task<Maintix_API.Models.Historico?> FinalizarMantenimientoAsync(int mantenimientoId, FinalizarMantenimientoDto dto);
         Task<MantenimientoConChecklistDto?> ObtenerMantenimientoConChecklistAsync(int mantenimientoId);
         
         // Nuevos métodos

@@ -50,3 +50,4 @@ data class FinalizarMantenimientoDto(
     @SerializedName("usuarioId") val usuarioId: Int,
     @SerializedName("incidencias") val incidencias: String?
 )
+
