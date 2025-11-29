@@ -93,6 +93,7 @@ fun LoginScreen(
                             if (loginResponse != null) {
                                 appState.tecnicoId = loginResponse.usuarioId
                                 onLoginSuccess(loginResponse.tipoUsuarioId)
+                                RetrofitClient.saveToken(loginResponse.token)
                             } else {
                                 errorMessage = "Error: respuesta vacía"
                             }

@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +22,7 @@ import com.tonhete.maintixapp.data.models.Mantenimiento
 import com.tonhete.maintixapp.data.models.Usuario
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardAdminScreen(navController: NavController) {
     var mantenimientos by remember { mutableStateOf<List<Mantenimiento>>(emptyList()) }
@@ -26,12 +30,14 @@ fun DashboardAdminScreen(navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var mantenimientoSeleccionado by remember { mutableStateOf<Mantenimiento?>(null) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    fun cargarDatos() {
         scope.launch {
             try {
+                isLoading = true
                 val mantenimientosResponse = RetrofitClient.apiService.getMantenimientos()
                 if (mantenimientosResponse.isSuccessful) {
                     mantenimientos = mantenimientosResponse.body() ?: emptyList()
@@ -46,108 +52,123 @@ fun DashboardAdminScreen(navController: NavController) {
                 errorMessage = "Error: ${e.message}"
             } finally {
                 isLoading = false
+                isRefreshing = false
             }
         }
     }
 
-// Filtrar y ordenar mantenimientos
+    LaunchedEffect(Unit) {
+        cargarDatos()
+    }
+
+    // Filtrar y ordenar mantenimientos
     val sinAsignar = mantenimientos.filter { it.operarioAsignadoId == null }
     val pendientes = mantenimientos.filter {
         it.operarioAsignadoId != null && (it.estado == "pendiente" || it.estado == "en_progreso")
     }
     val finalizados = mantenimientos.filter { it.estado == "finalizado" }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            cargarDatos()
+        }
     ) {
-        Text(
-            text = "Panel Administrador",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Panel Administrador",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-            errorMessage != null -> {
-                Text(
-                    text = errorMessage ?: "",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Sección: Sin asignar
-                    if (sinAsignar.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Sin asignar (${sinAsignar.size})",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        items(sinAsignar) { mantenimiento ->
-                            MantenimientoAdminCard(
-                                mantenimiento = mantenimiento,
-                                color = Color(0xFF2196F3),
-                                mostrarProgreso = false,
-                                estadoTexto = "PENDIENTE DE ASIGNACIÓN",
-                                onClick = { mantenimientoSeleccionado = mantenimiento }
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.height(8.dp)) }
-                    }
 
-// Sección: Pendientes
-                    if (pendientes.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Pendientes (${pendientes.size})",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        items(pendientes) { mantenimiento ->
-                            MantenimientoAdminCard(
-                                mantenimiento = mantenimiento,
-                                color = Color(0xFFFF9800),
-                                mostrarProgreso = true,
-                                estadoTexto = mantenimiento.estado.uppercase(),
-                                onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.height(8.dp)) }
-                    }
+                errorMessage != null -> {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
 
-// Sección: Finalizados
-                    if (finalizados.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Finalizados (${finalizados.size})",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Sección: Sin asignar
+                        if (sinAsignar.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Sin asignar (${sinAsignar.size})",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            items(sinAsignar) { mantenimiento ->
+                                MantenimientoAdminCard(
+                                    mantenimiento = mantenimiento,
+                                    color = Color(0xFF2196F3),
+                                    mostrarProgreso = false,
+                                    estadoTexto = "PENDIENTE DE ASIGNACIÓN",
+                                    onClick = { mantenimientoSeleccionado = mantenimiento }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
                         }
-                        items(finalizados) { mantenimiento ->
-                            MantenimientoAdminCard(
-                                mantenimiento = mantenimiento,
-                                color = Color(0xFF4CAF50),
-                                mostrarProgreso = false,
-                                estadoTexto = "FINALIZADO",
-                                onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
-                            )
+
+                        // Sección: Pendientes
+                        if (pendientes.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Pendientes (${pendientes.size})",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            items(pendientes) { mantenimiento ->
+                                MantenimientoAdminCard(
+                                    mantenimiento = mantenimiento,
+                                    color = Color(0xFFFF9800),
+                                    mostrarProgreso = true,
+                                    estadoTexto = mantenimiento.estado.uppercase(),
+                                    onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
+                        }
+
+                        // Sección: Finalizados
+                        if (finalizados.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Finalizados (${finalizados.size})",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            items(finalizados) { mantenimiento ->
+                                MantenimientoAdminCard(
+                                    mantenimiento = mantenimiento,
+                                    color = Color(0xFF4CAF50),
+                                    mostrarProgreso = false,
+                                    estadoTexto = "FINALIZADO",
+                                    onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
+                                )
+                            }
                         }
                     }
                 }
@@ -210,7 +231,7 @@ fun MantenimientoAdminCard(
                 color = color
             ) {
                 Text(
-                    text = estadoTexto,  // Usar el parámetro en lugar de mantenimiento.estado
+                    text = estadoTexto,
                     modifier = Modifier.padding(8.dp),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White,
@@ -361,7 +382,6 @@ fun AsignarTecnicoModal(
     }
 }
 
-// Reutilizar la función de formato de fecha
 fun formatearFecha(fecha: String): String {
     return try {
         val inputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())

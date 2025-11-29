@@ -1,12 +1,15 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Maintix_API.DTOs;
 using Maintix_API.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Maintix_API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MantenimientoServiceController : ControllerBase
+        [Authorize]
+        [Route("api/[controller]")]
+        [ApiController]
+        public class MantenimientoServiceController : ControllerBase
     {
         private readonly IMantenimientoService _service;
 
@@ -15,7 +18,7 @@ namespace Maintix_API.Controllers
             _service = service;
         }
 
-        // POST: api/MantenimientoService/equipo/5/actualizar-horas
+        // POST: api/MantenimientoService/equipo/{equipoId}/actualizar-horas
         [HttpPost("equipo/{equipoId}/actualizar-horas")]
         public async Task<ActionResult> ActualizarHorasEquipo(int equipoId, [FromBody] ActualizarHorasDto dto)
         {
@@ -24,7 +27,7 @@ namespace Maintix_API.Controllers
             return Ok(new { message = "Horas actualizadas correctamente" });
         }
 
-        // GET: api/MantenimientoService/equipo/5/alertas
+        // GET: api/MantenimientoService/equipo/{equipoId}/alertas
         [HttpGet("equipo/{equipoId}/alertas")]
         public async Task<ActionResult<AlertaMantenimientoDto>> VerificarAlertas(int equipoId)
         {
@@ -34,15 +37,15 @@ namespace Maintix_API.Controllers
         }
 
         // POST: api/MantenimientoService/crear-con-checklist
-       [HttpPost("crear-con-checklist")]
+        [HttpPost("crear-con-checklist")]
         public async Task<ActionResult<MantenimientoConChecklistDto>> CrearMantenimientoConChecklist([FromBody] CrearMantenimientoDto dto)
         {
             var mantenimiento = await _service.CrearMantenimientoConChecklistAsync(dto);
             if (mantenimiento == null) return NotFound("Equipo o tipo de mantenimiento no encontrado");
-            return Ok(mantenimiento);  // ← Cambia esto
+            return Ok(mantenimiento);
         }
 
-        // GET: api/MantenimientoService/5/checklist
+        // GET: api/MantenimientoService/{mantenimientoId}/checklist
         [HttpGet("{mantenimientoId}/checklist")]
         public async Task<ActionResult<MantenimientoConChecklistDto>> ObtenerMantenimientoConChecklist(int mantenimientoId)
         {
@@ -51,7 +54,7 @@ namespace Maintix_API.Controllers
             return Ok(mantenimiento);
         }
 
-        // PUT: api/MantenimientoService/5/actualizar-checklist
+        // PUT: api/MantenimientoService/{mantenimientoId}/actualizar-checklist
         [HttpPut("{mantenimientoId}/actualizar-checklist")]
         public async Task<ActionResult> ActualizarChecklist(int mantenimientoId, [FromBody] ActualizarChecklistDto dto)
         {
@@ -60,7 +63,7 @@ namespace Maintix_API.Controllers
             return Ok(new { message = "Checklist actualizado correctamente" });
         }
 
-        // POST: api/MantenimientoService/5/finalizar
+        // POST: api/MantenimientoService/{mantenimientoId}/finalizar
         [HttpPost("{mantenimientoId}/finalizar")]
         public async Task<ActionResult> FinalizarMantenimiento(int mantenimientoId, [FromBody] FinalizarMantenimientoDto dto)
         {
@@ -85,7 +88,7 @@ namespace Maintix_API.Controllers
             return Ok(mantenimientos);
         }
 
-        // PUT: api/MantenimientoService/5/asignar-operario
+        // PUT: api/MantenimientoService/{mantenimientoId}/asignar-operario
         [HttpPut("{mantenimientoId}/asignar-operario")]
         public async Task<ActionResult> AsignarOperario(int mantenimientoId, [FromBody] AsignarOperarioDto dto)
         {
