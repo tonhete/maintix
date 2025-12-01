@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,13 +24,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.tonhete.maintixapp.data.RetrofitClient
 import com.tonhete.maintixapp.data.models.*
+import com.tonhete.maintixapp.ui.components.MaintixButton
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleEquipoScreen(
@@ -94,13 +98,13 @@ fun DetalleEquipoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F5))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             // Header con botón volver
             /*
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 shadowElevation = 2.dp
             ) {
                 Row(
@@ -132,8 +136,9 @@ fun DetalleEquipoScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Column(
                             modifier = Modifier
@@ -155,12 +160,9 @@ fun DetalleEquipoScreen(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            Button(
+                            MaintixButton(
                                 onClick = { showActualizarHorasModal = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF2196F3)
-                                )
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(Icons.Default.Edit, "Actualizar", modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -184,7 +186,7 @@ fun DetalleEquipoScreen(
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         ) {
                             Box(
                                 modifier = Modifier
@@ -211,7 +213,7 @@ fun DetalleEquipoScreen(
                     if (proveedor != null) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
@@ -261,7 +263,7 @@ fun DetalleEquipoScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -370,6 +372,7 @@ fun InfoRow(label: String, value: String) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MantenimientoMiniCard(
     mantenimiento: Mantenimiento,
@@ -387,7 +390,7 @@ fun MantenimientoMiniCard(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -438,15 +441,17 @@ fun HistoricoMiniCard(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(Color(0xFF4CAF50))
+                    .background(MaterialTheme.colorScheme.background)
             )
 
             Column(modifier = Modifier.padding(12.dp)) {
@@ -462,7 +467,7 @@ fun HistoricoMiniCard(
                     Text(
                         text = "Tipo ${historico.clase}",
                         fontSize = 13.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -471,7 +476,7 @@ fun HistoricoMiniCard(
                 Text(
                     text = formatearFecha(historico.fechaFinalizacion),
                     fontSize = 11.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
@@ -494,17 +499,27 @@ fun ActualizarHorasModal(
     var nuevasHoras by remember { mutableStateOf(horasActuales.toString()) }
     var error by remember { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("Actualizar Horas")
-        },
-        text = {
-            Column {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+            elevation = CardDefaults.cardElevation(defaultElevation = 20.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Actualizar Horas",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Horas actuales: $horasActuales",
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -518,40 +533,50 @@ fun ActualizarHorasModal(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = error,
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    )
                 )
 
                 if (error) {
                     Text(
                         text = "Introduce un número válido",
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val horas = nuevasHoras.toIntOrNull()
-                    if (horas != null && horas >= 0) {
-                        onConfirm(horas)
-                    } else {
-                        error = true
-                    }
-                },
-                enabled = !error && nuevasHoras.isNotEmpty()
-            ) {
-                Text("Guardar")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                MaintixButton(
+                    onClick = {
+                        val horas = nuevasHoras.toIntOrNull()
+                        if (horas != null && horas >= 0) {
+                            onConfirm(horas)
+                        } else {
+                            error = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !error && nuevasHoras.isNotEmpty()
+                ) {
+                    Text("Guardar")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancelar")
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -559,42 +584,58 @@ fun DetalleHistoricoModal(
     historico: Historico,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("Detalle del Histórico #${historico.id}")
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                InfoRow("Tipo", "Clase ${historico.clase}")
-                InfoRow("Operario", historico.operario)
-                InfoRow("Horas máquina", "${historico.horasMaquina}")
-                InfoRow("Fecha inicio", formatearFecha(historico.fechaMantenimiento))
-                InfoRow("Fecha fin", formatearFecha(historico.fechaFinalizacion))
-
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Incidencias:",
+                    text = "Detalle del Histórico #${historico.id}",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    text = historico.incidencias ?: "Sin incidencias",
-                    fontSize = 13.sp,
-                    color = if (historico.incidencias.isNullOrEmpty()) Color.Gray else Color.Black
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Cerrar")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    InfoRow("Tipo", "Clase ${historico.clase}")
+                    InfoRow("Operario", historico.operario)
+                    InfoRow("Horas máquina", "${historico.horasMaquina}")
+                    InfoRow("Fecha inicio", formatearFecha(historico.fechaMantenimiento))
+                    InfoRow("Fecha fin", formatearFecha(historico.fechaFinalizacion))
+
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Text(
+                        text = "Incidencias:",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = historico.incidencias ?: "Sin incidencias",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                MaintixButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cerrar")
+                }
             }
         }
-    )
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

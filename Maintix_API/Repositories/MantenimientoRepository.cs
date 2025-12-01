@@ -112,7 +112,7 @@ namespace Maintix_API.Repositories
 
             if (!items.Any()) return new List<Mantenimiento>();
 
-            // Obtener conteos (total y completados) para todos los mantenimientos de forma agregada
+            // Obtener conteos (total y completados) para todos los mantenimientos
             var mantenimientoIds = items.Select(m => m.Id).ToList();
 
             var counts = await _context.ChecklistMantenimiento

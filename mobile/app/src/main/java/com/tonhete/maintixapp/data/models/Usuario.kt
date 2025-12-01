@@ -7,3 +7,8 @@ data class Usuario(
     @SerializedName("email") val email: String,
     @SerializedName("passwd") val passwd: String?
 )
+
+data class TipoUsuario(
+    @SerializedName("id") val id: Int,
+    @SerializedName("descripcion") val descripcion: String
+)

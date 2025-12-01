@@ -2,6 +2,7 @@ package com.tonhete.maintixapp.ui.screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -41,6 +42,11 @@ fun DashboardScreen(onMantenimientoClick: (String) -> Unit) {
 
                 if (response.isSuccessful) {
                     mantenimientos = response.body() ?: emptyList()
+
+                    // MOVER AQUÍ
+                    appState.numPendientes = mantenimientos.filter {
+                        it.estado == "pendiente" && it.operarioAsignadoId == appState.tecnicoId
+                    }.size
                 } else {
                     errorMessage = "Error: ${response.code()}"
                 }
@@ -112,13 +118,21 @@ fun MantenimientoCard(
     val badgeColor = when (mantenimiento.estado) {
         "finalizado" -> Color(0xFF4CAF50)
         "en_progreso" -> Color(0xFFFF9800)
+        "pendiente" -> Color(0xFFFF9800)
         else -> Color(0xFFF44336)
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .then(
+                if (onClick != null) Modifier.clickable(onClick = onClick)
+                else Modifier
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(1.dp, badgeColor)
     ) {
         Column {
             // Barra superior con estado

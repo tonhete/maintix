@@ -17,6 +17,12 @@ interface ApiService {
     @GET("api/Usuario")
     suspend fun getUsuarios(): Response<List<Usuario>>
 
+    @PUT("Usuario/{id}")
+    suspend fun updateUsuario(
+        @Path("id") id: Int,
+        @Body usuario: Usuario
+    ): Response<Usuario>
+
     // ========== MANTENIMIENTOS ==========
     @GET("api/Mantenimiento")
     suspend fun getMantenimientos(): Response<List<Mantenimiento>>

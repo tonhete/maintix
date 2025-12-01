@@ -10,6 +10,8 @@ import androidx.compose.runtime.setValue
 class AppState {
     var mantenimientoEnCurso: String? by mutableStateOf(null)
 
+    var numPendientes: Int by mutableStateOf(0)
+
     var tecnicoId: Int? by mutableStateOf(null)
 
     // Inicia un mantenimiento

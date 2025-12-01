@@ -19,6 +19,7 @@ import com.tonhete.maintixapp.data.models.ActualizarItemChecklistDto
 import com.tonhete.maintixapp.data.models.FinalizarMantenimientoDto
 import com.tonhete.maintixapp.data.models.Mantenimiento
 import com.tonhete.maintixapp.ui.components.ItemDetalleModal
+import com.tonhete.maintixapp.ui.components.MaintixButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -164,9 +165,9 @@ fun ChecklistScreen(
             .padding(16.dp)
     ) {
         // Botón volver
-        TextButton(onClick = { navController.popBackStack() }) {
-            Text("← Volver")
-        }
+        //TextButton(onClick = { navController.popBackStack() }) {
+        //    Text("← Volver")
+        //}
 
         // Título
         Column {
@@ -261,7 +262,7 @@ fun ChecklistScreen(
                 // Botones según modo
                 if (soloLectura) {
                     // Modo solo lectura (admin viendo histórico)
-                    Button(
+                    MaintixButton(
                         onClick = { navController.popBackStack() },
                         modifier = Modifier.fillMaxWidth()
                     ) {

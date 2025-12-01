@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.tonhete.maintixapp.data.RetrofitClient
 import com.tonhete.maintixapp.data.models.Mantenimiento
 import com.tonhete.maintixapp.data.models.Equipo
+import com.tonhete.maintixapp.ui.components.MaintixButton
 import kotlinx.coroutines.launch
 
 // Pantalla de detalle del mantenimiento
@@ -57,11 +58,11 @@ fun DetalleMantenimientoScreen(
             .padding(16.dp)
     ) {
         // Botón volver
-        TextButton(onClick = onBackClick) {
-            Text("← Volver")
-        }
+        //TextButton(onClick = onBackClick) {
+        //    Text("← Volver")
+        //}
 
-        Spacer(modifier = Modifier.height(16.dp))
+        //Spacer(modifier = Modifier.height(16.dp))
 
         when {
             isLoading -> {
@@ -110,7 +111,7 @@ fun DetalleMantenimientoScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Botón iniciar
-                Button(
+                MaintixButton(
                     onClick = onIniciarClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {

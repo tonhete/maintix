@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.core.view.WindowCompat
 import com.tonhete.maintixapp.data.RetrofitClient
 import com.tonhete.maintixapp.ui.navigation.AppNavigation
 import com.tonhete.maintixapp.ui.theme.MaintixAppTheme
@@ -19,6 +20,9 @@ class MainActivity : ComponentActivity() {
         RetrofitClient.init(this)
         // setContent: define qué se muestra en pantalla
         setContent {
+
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
 
             // MaintixAppTheme: aplica el tema visual (colores, fuentes...)
             MaintixAppTheme {
