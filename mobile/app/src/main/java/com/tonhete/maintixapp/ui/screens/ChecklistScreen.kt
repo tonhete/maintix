@@ -36,6 +36,9 @@ fun ChecklistScreen(
     var successMessage by remember { mutableStateOf<String?>(null) }
     var selectedItem by remember { mutableStateOf<ChecklistItem?>(null) }
     var mantenimiento by remember { mutableStateOf<Mantenimiento?>(null) }
+    var showFinalizarDialog by remember { mutableStateOf(false) }
+    var incidencias by remember { mutableStateOf("") }
+
 
     val scope = rememberCoroutineScope()
 
@@ -100,13 +103,12 @@ fun ChecklistScreen(
     }
 
     // Función para finalizar mantenimiento (solo si todo completo)
-    fun finalizarMantenimiento() {
+    fun finalizarMantenimiento(incidenciasTexto: String?) {
         scope.launch {
             isSaving = true
             errorMessage = null
 
             try {
-                // 1. Guardar checklist
                 val checklistDto = ActualizarChecklistDto(
                     items = checklistItems.map {
                         ActualizarItemChecklistDto(
@@ -123,10 +125,9 @@ fun ChecklistScreen(
                 )
 
                 if (checklistResponse.isSuccessful) {
-                    // 2. Finalizar mantenimiento
                     val finalizarDto = FinalizarMantenimientoDto(
-                        usuarioId = 1, // TODO: usar usuario real del login
-                        incidencias = null // TODO: permitir añadir incidencias
+                        usuarioId = appState.tecnicoId ?: 0,  // CAMBIAR
+                        incidencias = incidenciasTexto  // CAMBIAR
                     )
 
                     val finalizarResponse = RetrofitClient.apiService.finalizarMantenimiento(
@@ -135,7 +136,6 @@ fun ChecklistScreen(
                     )
 
                     if (finalizarResponse.isSuccessful) {
-                        // 3. Limpiar estado y volver al dashboard
                         appState.finalizarMantenimiento()
                         navController.navigate("dashboard") {
                             popUpTo("dashboard") { inclusive = false }
@@ -291,18 +291,12 @@ fun ChecklistScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
-                        onClick = { finalizarMantenimiento() },
+                        onClick = { showFinalizarDialog = true },  // Cambiar esto
                         modifier = Modifier.fillMaxWidth(),
                         enabled = todoCompleto && !isSaving
                     ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("FINALIZAR MANTENIMIENTO")
-                        }
+                        Text("FINALIZAR MANTENIMIENTO")
+
                     }
                 }
             }
@@ -314,6 +308,41 @@ fun ChecklistScreen(
         ItemDetalleModal(
             item = item,
             onDismiss = { selectedItem = null }
+        )
+    }
+    if (showFinalizarDialog) {
+        AlertDialog(
+            onDismissRequest = { showFinalizarDialog = false },
+            title = { Text("Finalizar Mantenimiento") },
+            text = {
+                Column {
+                    Text("¿Deseas añadir incidencias?")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = incidencias,
+                        onValueChange = { incidencias = it },
+                        label = { Text("Incidencias (opcional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showFinalizarDialog = false
+                        finalizarMantenimiento(incidencias.ifBlank { null })
+                    }
+                ) {
+                    Text("Finalizar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFinalizarDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
         )
     }
 }
@@ -362,4 +391,5 @@ fun CheckItemCard(
             )
         }
     }
+
 }
