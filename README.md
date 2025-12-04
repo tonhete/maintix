@@ -197,7 +197,7 @@ Authorization: Bearer {token}
 - [Planificación del proyecto](docs/planificacion.md)
 - [Alcance del proyecto](docs/alcance.md)
 - [Presupuesto](docs/presupuesto.md)
-- [Diagrama base de datos](docs/diagrama_bbdd.png)
+- [Diagrama base de datos](docs/DIAGRAMA_BBDD.png)
 
 ## Instalación y Ejecución
 
