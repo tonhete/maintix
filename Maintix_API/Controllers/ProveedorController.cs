@@ -1,12 +1,15 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Maintix_API.Models;
 using Maintix_API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Maintix_API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProveedorController : ControllerBase
+        [Authorize]
+        [Route("api/[controller]")]
+        [ApiController]
+        public class ProveedorController : ControllerBase
     {
         private readonly IProveedorRepository _repository;
 

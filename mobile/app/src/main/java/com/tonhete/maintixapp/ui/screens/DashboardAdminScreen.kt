@@ -1,11 +1,16 @@
 package com.tonhete.maintixapp.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,8 +22,11 @@ import com.tonhete.maintixapp.data.RetrofitClient
 import com.tonhete.maintixapp.data.models.AsignarOperarioDto
 import com.tonhete.maintixapp.data.models.Mantenimiento
 import com.tonhete.maintixapp.data.models.Usuario
+import com.tonhete.maintixapp.ui.components.MaintixButton
+import com.tonhete.maintixapp.ui.theme.*
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardAdminScreen(navController: NavController) {
     var mantenimientos by remember { mutableStateOf<List<Mantenimiento>>(emptyList()) }
@@ -26,12 +34,14 @@ fun DashboardAdminScreen(navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var mantenimientoSeleccionado by remember { mutableStateOf<Mantenimiento?>(null) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    fun cargarDatos() {
         scope.launch {
             try {
+                isLoading = true
                 val mantenimientosResponse = RetrofitClient.apiService.getMantenimientos()
                 if (mantenimientosResponse.isSuccessful) {
                     mantenimientos = mantenimientosResponse.body() ?: emptyList()
@@ -46,108 +56,124 @@ fun DashboardAdminScreen(navController: NavController) {
                 errorMessage = "Error: ${e.message}"
             } finally {
                 isLoading = false
+                isRefreshing = false
             }
         }
     }
 
-// Filtrar y ordenar mantenimientos
+    LaunchedEffect(Unit) {
+        cargarDatos()
+    }
+
     val sinAsignar = mantenimientos.filter { it.operarioAsignadoId == null }
     val pendientes = mantenimientos.filter {
         it.operarioAsignadoId != null && (it.estado == "pendiente" || it.estado == "en_progreso")
     }
     val finalizados = mantenimientos.filter { it.estado == "finalizado" }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            cargarDatos()
+        }
     ) {
-        Text(
-            text = "Panel Administrador",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Panel Administrador",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-            errorMessage != null -> {
-                Text(
-                    text = errorMessage ?: "",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Sección: Sin asignar
-                    if (sinAsignar.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Sin asignar (${sinAsignar.size})",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        items(sinAsignar) { mantenimiento ->
-                            MantenimientoAdminCard(
-                                mantenimiento = mantenimiento,
-                                color = Color(0xFF2196F3),
-                                mostrarProgreso = false,
-                                estadoTexto = "PENDIENTE DE ASIGNACIÓN",
-                                onClick = { mantenimientoSeleccionado = mantenimiento }
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.height(8.dp)) }
-                    }
 
-// Sección: Pendientes
-                    if (pendientes.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Pendientes (${pendientes.size})",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        items(pendientes) { mantenimiento ->
-                            MantenimientoAdminCard(
-                                mantenimiento = mantenimiento,
-                                color = Color(0xFFFF9800),
-                                mostrarProgreso = true,
-                                estadoTexto = mantenimiento.estado.uppercase(),
-                                onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
-                            )
-                        }
-                        item { Spacer(modifier = Modifier.height(8.dp)) }
-                    }
+                errorMessage != null -> {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
 
-// Sección: Finalizados
-                    if (finalizados.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Finalizados (${finalizados.size})",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (sinAsignar.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Sin asignar (${sinAsignar.size})",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            items(sinAsignar) { mantenimiento ->
+                                MantenimientoAdminCard(
+                                    mantenimiento = mantenimiento,
+                                    color = Color(0xFF2196F3),
+                                    mostrarProgreso = false,
+                                    estadoTexto = "PENDIENTE DE ASIGNACIÓN",
+                                    onClick = { mantenimientoSeleccionado = mantenimiento }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
                         }
-                        items(finalizados) { mantenimiento ->
-                            MantenimientoAdminCard(
-                                mantenimiento = mantenimiento,
-                                color = Color(0xFF4CAF50),
-                                mostrarProgreso = false,
-                                estadoTexto = "FINALIZADO",
-                                onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
-                            )
+
+                        if (pendientes.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Pendientes (${pendientes.size})",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            items(pendientes) { mantenimiento ->
+                                MantenimientoAdminCard(
+                                    mantenimiento = mantenimiento,
+                                    color = Color(0xFFFF9800),
+                                    mostrarProgreso = true,
+                                    estadoTexto = mantenimiento.estado.uppercase(),
+                                    onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
+                        }
+
+                        if (finalizados.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Finalizados (${finalizados.size})",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            items(finalizados) { mantenimiento ->
+                                MantenimientoAdminCard(
+                                    mantenimiento = mantenimiento,
+                                    color = Color(0xFF4CAF50),
+                                    mostrarProgreso = false,
+                                    estadoTexto = "FINALIZADO",
+                                    onClick = { navController.navigate("admin/checklist/${mantenimiento.id}") }
+                                )
+                            }
                         }
                     }
                 }
@@ -155,7 +181,6 @@ fun DashboardAdminScreen(navController: NavController) {
         }
     }
 
-    // Modal para asignar técnico
     mantenimientoSeleccionado?.let { mantenimiento ->
         AsignarTecnicoModal(
             mantenimiento = mantenimiento,
@@ -202,7 +227,11 @@ fun MantenimientoAdminCard(
             .then(
                 if (onClick != null) Modifier.clickable(onClick = onClick)
                 else Modifier
-            )
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(1.dp, color)
     ) {
         Column {
             Surface(
@@ -210,22 +239,23 @@ fun MantenimientoAdminCard(
                 color = color
             ) {
                 Text(
-                    text = estadoTexto,  // Usar el parámetro en lugar de mantenimiento.estado
+                    text = estadoTexto,
                     modifier = Modifier.padding(8.dp),
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
             }
 
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp).background(MaterialTheme.colorScheme.background)
             ) {
                 Text(
                     text = mantenimiento.maquinaNombre ?: "Máquina #${mantenimiento.equipoId}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
@@ -238,13 +268,15 @@ fun MantenimientoAdminCard(
 
                 Text(
                     text = "Tipo: ${mantenimiento.tipoMantenimiento?.nombre ?: "N/A"}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 mantenimiento.fechaInicio?.let {
                     Text(
                         text = "Fecha: ${formatearFecha(it)}",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -260,7 +292,8 @@ fun MantenimientoAdminCard(
                     Text(
                         text = "${(mantenimiento.progresoChecklist * 100).toInt()}% completado",
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -283,7 +316,10 @@ fun AsignarTecnicoModal(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -291,19 +327,20 @@ fun AsignarTecnicoModal(
                 Text(
                     text = "Asignar técnico",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Mantenimiento #${mantenimiento.id}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Dropdown de técnicos
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded }
@@ -315,7 +352,13 @@ fun AsignarTecnicoModal(
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor()
+                            .menuAnchor(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        )
                     )
 
                     ExposedDropdownMenu(
@@ -336,8 +379,7 @@ fun AsignarTecnicoModal(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón asignar
-                Button(
+                MaintixButton(
                     onClick = {
                         tecnicoSeleccionado?.let { onAsignar(it.id) }
                     },
@@ -349,7 +391,6 @@ fun AsignarTecnicoModal(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Botón cancelar
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth()
@@ -361,7 +402,6 @@ fun AsignarTecnicoModal(
     }
 }
 
-// Reutilizar la función de formato de fecha
 fun formatearFecha(fecha: String): String {
     return try {
         val inputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())

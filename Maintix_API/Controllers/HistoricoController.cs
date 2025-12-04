@@ -1,13 +1,16 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Maintix_API.Models;
 using Maintix_API.Repositories;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Maintix_API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class HistoricoController : ControllerBase
+        [Authorize]
+        [Route("api/[controller]")]
+        [ApiController]
+        public class HistoricoController : ControllerBase
     {
         private readonly IHistoricoRepository _repository;
 

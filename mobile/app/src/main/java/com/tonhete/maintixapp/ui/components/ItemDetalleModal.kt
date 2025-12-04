@@ -1,5 +1,6 @@
 package com.tonhete.maintixapp.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.tonhete.maintixapp.data.models.ChecklistItem
+import com.tonhete.maintixapp.ui.theme.OrangeLight
 
 @Composable
 fun ItemDetalleModal(
@@ -36,14 +38,16 @@ fun ItemDetalleModal(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f))
-                .clickable(onClick = onDismiss)
+                .clickable(onClick = onDismiss),
+
         ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .fillMaxHeight(0.85f)
-                    .align(Alignment.CenterEnd)
-                    .clickable(onClick = {})
+                    .align(Alignment.Center)
+                    .clickable(onClick = {}),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Column(
                     modifier = Modifier
@@ -80,7 +84,8 @@ fun ItemDetalleModal(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(200.dp)
-                                    .clickable { showImageFullscreen = true }
+                                    .clickable { showImageFullscreen = true },
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                             ) {
                                 AsyncImage(
                                     model = baseUrl + url,
@@ -97,7 +102,7 @@ fun ItemDetalleModal(
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+
                                 )
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {

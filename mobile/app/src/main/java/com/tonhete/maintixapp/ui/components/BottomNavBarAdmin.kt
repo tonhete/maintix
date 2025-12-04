@@ -15,8 +15,11 @@ fun MainScaffoldAdmin(
     content: @Composable () -> Unit
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
                 NavigationBarItem(
                     selected = currentRoute.startsWith("dashboard_admin"),
                     onClick = { onNavigate("dashboard_admin") },

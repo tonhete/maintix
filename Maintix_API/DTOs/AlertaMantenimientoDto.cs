@@ -5,8 +5,12 @@ namespace Maintix_API.DTOs
         public int EquipoId { get; set; }
         public string? NumeroSerie { get; set; }
         public string? DescripcionEquipo { get; set; }
-        public int TipoMantenimientoPendienteId { get; set; }
-        public List<string> MantenimientosPendientes { get; set; } = new();
+        public List<MantenimientoPendienteInfo> MantenimientosPendientes { get; set; } = new();
         public int HorasActuales { get; set; }
+    }
+    public class MantenimientoPendienteInfo
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
     }
 }

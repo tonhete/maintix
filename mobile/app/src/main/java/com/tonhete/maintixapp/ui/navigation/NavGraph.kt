@@ -21,6 +21,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: "dashboard"
     val mantenimientoEnCurso = appState.mantenimientoEnCurso
+    val numPendientes = appState.numPendientes
 
     NavHost(
         navController = navController,
@@ -50,6 +51,7 @@ fun AppNavigation() {
             MainScaffold(
                 currentRoute = currentRoute,
                 mantenimientoEnCurso = mantenimientoEnCurso,
+                numPendientes = numPendientes,
                 onNavigate = { navController.navigate(it) }
             ) {
                 DashboardScreen(
@@ -65,9 +67,20 @@ fun AppNavigation() {
             MainScaffold(
                 currentRoute = currentRoute,
                 mantenimientoEnCurso = mantenimientoEnCurso,
+                numPendientes = numPendientes,
                 onNavigate = { navController.navigate(it) }
             ) {
-                Text("Perfil - Próximamente")
+                UsuarioScreen(navController = navController)
+            }
+        }
+
+// Perfil Admin
+        composable("perfil_admin") {
+            MainScaffoldAdmin(
+                currentRoute = currentRoute,
+                onNavigate = { navController.navigate(it) }
+            ) {
+                UsuarioScreen(navController = navController)
             }
         }
 
@@ -81,6 +94,7 @@ fun AppNavigation() {
             MainScaffold(
                 currentRoute = currentRoute,
                 mantenimientoEnCurso = mantenimientoEnCurso,
+                numPendientes = numPendientes,
                 onNavigate = { navController.navigate(it) }
             ) {
                 DetalleMantenimientoScreen(
@@ -104,6 +118,7 @@ fun AppNavigation() {
             MainScaffold(
                 currentRoute = currentRoute,
                 mantenimientoEnCurso = mantenimientoEnCurso,
+                numPendientes = numPendientes,
                 onNavigate = { navController.navigate(it) }
             ) {
                 ChecklistScreen(
@@ -167,16 +182,6 @@ fun AppNavigation() {
                     equipoId = equipoId,
                     navController = navController
                 )
-            }
-        }
-
-        // Perfil Admin
-        composable("perfil_admin") {
-            MainScaffoldAdmin(
-                currentRoute = currentRoute,
-                onNavigate = { navController.navigate(it) }
-            ) {
-                Text("Perfil Admin - Próximamente")
             }
         }
     }
