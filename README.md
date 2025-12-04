@@ -30,8 +30,7 @@ Aplicación móvil para la gestión integral del mantenimiento programado de maq
   - ✅ Pantalla de usuario con logout
   - ✅ Navegación dinámica según contexto
   - ✅ Contador de mantenimientos pendientes
-  - ✅ Paleta de colores corporativa (naranja #FF7A00)
-- ⏳ Documentación final
+  - ✅ Documentacion final
 
 ## Tecnologías
 
@@ -60,168 +59,6 @@ Aplicación móvil para la gestión integral del mantenimiento programado de maq
 ### Control de versiones
 - **Git** con repositorio en GitHub
 
-## Estructura del Proyecto
-```
-maintix/
-├── docs/                          # Documentación del proyecto
-│   ├── planificacion.md          # Planificación y cronograma
-│   ├── alcance.md                # Alcance del proyecto
-│   └── presupuesto.md            # Presupuesto detallado
-│
-├── database/                      # Base de datos
-│   ├── scripts/
-│   │   └── 01-crear-tablas.sql   # Script creación de tablas
-│   └── diagrams/                 # Diagramas ER
-│       └── esquema_inicial.png
-│
-├── Maintix_API/                   # API REST en .NET ✅
-│   ├── Controllers/              # 15 controllers REST
-│   │   ├── AuthController.cs             # Login JWT
-│   │   ├── MantenimientoServiceController.cs # Lógica de negocio
-│   │   ├── TipoUsuarioController.cs
-│   │   ├── UsuarioController.cs
-│   │   ├── ProveedorController.cs
-│   │   ├── TipoMaquinariaController.cs
-│   │   ├── TipoMaquinaController.cs
-│   │   ├── EquipoController.cs
-│   │   ├── TipoMantenimientoController.cs
-│   │   ├── MantenimientoController.cs
-│   │   ├── ItemMantenimientoController.cs
-│   │   ├── ChecklistMantenimientoController.cs
-│   │   ├── HistoricoController.cs
-│   │   ├── HealthController.cs
-│   │   └── WeatherForecastController.cs
-│   │
-│   ├── Models/                   # 11 entidades del dominio
-│   │   ├── TipoUsuario.cs
-│   │   ├── Usuario.cs
-│   │   ├── Proveedor.cs
-│   │   ├── TipoMaquinaria.cs
-│   │   ├── TipoMaquina.cs
-│   │   ├── Equipo.cs
-│   │   ├── TipoMantenimiento.cs
-│   │   ├── Mantenimiento.cs
-│   │   ├── ItemMantenimiento.cs
-│   │   ├── ChecklistMantenimiento.cs
-│   │   └── Historico.cs
-│   │
-│   ├── DTOs/                     # Data Transfer Objects
-│   │   ├── LoginDto.cs
-│   │   ├── CrearMantenimientoDto.cs
-│   │   ├── MantenimientoConChecklistDto.cs
-│   │   ├── ActualizarChecklistDto.cs
-│   │   ├── ActualizarHorasDto.cs
-│   │   ├── FinalizarMantenimientoDto.cs
-│   │   ├── AlertaMantenimientoDto.cs
-│   │   ├── AlertaEquipoDto.cs
-│   │   ├── ChecklistItemDto.cs
-│   │   └── TipoMantenimientoEnum.cs
-│   │
-│   ├── Services/                 # Lógica de negocio
-│   │   ├── IAuthService.cs
-│   │   ├── AuthService.cs
-│   │   ├── IMantenimientoService.cs
-│   │   └── MantenimientoService.cs
-│   │
-│   ├── Data/
-│   │   └── MaintixDbContext.cs   # DbContext EF Core
-│   │
-│   ├── Repositories/             # Pattern Repository
-│   │   ├── IEquipoRepository.cs
-│   │   ├── EquipoRepository.cs
-│   │   ├── IMantenimientoRepository.cs
-│   │   ├── MantenimientoRepository.cs
-│   │   ├── IItemMantenimientoRepository.cs
-│   │   ├── ItemMantenimientoRepository.cs
-│   │   ├── IChecklistMantenimientoRepository.cs
-│   │   ├── ChecklistMantenimientoRepository.cs
-│   │   ├── IHistoricoRepository.cs
-│   │   ├── HistoricoRepository.cs
-│   │   ├── IProveedorRepository.cs
-│   │   ├── ProveedorRepository.cs
-│   │   ├── ITipoMantenimientoRepository.cs
-│   │   ├── TipoMantenimientoRepository.cs
-│   │   ├── ITipoMaquinaRepository.cs
-│   │   ├── TipoMaquinaRepository.cs
-│   │   ├── ITipoMaquinariaRepository.cs
-│   │   ├── TipoMaquinariaRepository.cs
-│   │   ├── ITipoUsuarioRepository.cs
-│   │   ├── TipoUsuarioRepository.cs
-│   │   ├── IUsuarioRepository.cs
-│   │   └── UsuarioRepository.cs
-│   │
-│   ├── Program.cs                # JWT configurado
-│   └── appsettings.json         # JWT settings
-│
-├── MaintixApp/                    # Aplicación Android ✅
-│   ├── app/
-│   │   ├── src/main/
-│   │   │   ├── java/com/tonhete/maintixapp/
-│   │   │   │   ├── MainActivity.kt
-│   │   │   │   │
-│   │   │   │   ├── data/                # Capa de datos
-│   │   │   │   │   ├── ApiService.kt    # Endpoints Retrofit
-│   │   │   │   │   ├── RetrofitClient.kt
-│   │   │   │   │   ├── AppState.kt      # Estado global
-│   │   │   │   │   └── models/          # Modelos de datos
-│   │   │   │   │       ├── Auth.kt
-│   │   │   │   │       ├── Usuario.kt
-│   │   │   │   │       ├── Equipo.kt
-│   │   │   │   │       ├── Mantenimiento.kt
-│   │   │   │   │       ├── ItemMantenimiento.kt
-│   │   │   │   │       ├── CheckListMantenimiento.kt
-│   │   │   │   │       └── Historico.kt
-│   │   │   │   │
-│   │   │   │   └── ui/                  # Interfaz de usuario
-│   │   │   │       ├── components/      # Componentes reutilizables
-│   │   │   │       │   ├── MainScaffold.kt
-│   │   │   │       │   ├── MainScaffoldAdmin.kt
-│   │   │   │       │   ├── MaintixButton.kt
-│   │   │   │       │   └── ItemDetalleModal.kt
-│   │   │   │       │
-│   │   │   │       ├── navigation/
-│   │   │   │       │   └── AppNavigation.kt  # Navegación
-│   │   │   │       │
-│   │   │   │       ├── screens/         # Pantallas principales
-│   │   │   │       │   ├── LoginScreen.kt
-│   │   │   │       │   ├── DashboardScreen.kt        # Técnico
-│   │   │   │       │   ├── DashboardAdminScreen.kt   # Admin
-│   │   │   │       │   ├── MaquinasScreen.kt
-│   │   │   │       │   ├── DetalleEquipoScreen.kt
-│   │   │   │       │   ├── DetalleMantenimientoScreen.kt
-│   │   │   │       │   ├── ChecklistScreen.kt
-│   │   │   │       │   └── UsuarioScreen.kt
-│   │   │   │       │
-│   │   │   │       └── theme/           # Tema y estilos
-│   │   │   │           ├── Color.kt
-│   │   │   │           ├── Theme.kt
-│   │   │   │           └── Type.kt
-│   │   │   │
-│   │   │   └── res/
-│   │   │       ├── drawable/
-│   │   │       │   └── login_img2.jpg
-│   │   │       ├── values/
-│   │   │       │   ├── strings.xml
-│   │   │       │   ├── colors.xml
-│   │   │       │   └── themes.xml
-│   │   │       └── xml/
-│   │   │           └── network_security_config.xml
-│   │   │
-│   │   └── build.gradle.kts
-│   │
-│   ├── gradle/
-│   │   └── libs.versions.toml
-│   ├── build.gradle.kts
-│   └── settings.gradle.kts
-│
-├── infrastructure/                # Configuración de servidor
-│   └── configuracion-servidor.md # Guía de instalación
-│
-├── CHANGELOG.md                   # Historial de cambios
-├── README.md                      # Este archivo
-└── .gitignore                    # Archivos ignorados por Git
-```
-
 ## Endpoints de la API
 
 ### Autenticación
@@ -248,7 +85,7 @@ POST /api/MantenimientoService/equipo/{equipoId}/actualizar-horas
 **Funcionalidades:**
 - Alertas de equipos que necesitan mantenimiento
 - Creación automática de mantenimientos con checklist
-- Creación masiva de mantenimientos desde alertas
+- Creación masiva de mantenimientos desde alertas 
 - Asignación de operarios a mantenimientos
 - Actualización de progreso del checklist
 - Finalización de mantenimiento (resetea contadores)
@@ -256,21 +93,10 @@ POST /api/MantenimientoService/equipo/{equipoId}/actualizar-horas
 
 ---
 
-### Equipos
-```
-GET    /api/Equipo/resumen          
-GET    /api/Equipo                  
-GET    /api/Equipo/{id}
-POST   /api/Equipo
-PUT    /api/Equipo/{id}
-DELETE /api/Equipo/{id}
-```
-
----
-
 ### Entidades CRUD Estándar
 Operaciones completas para:
 ```
+/api/Equipo
 /api/TipoUsuario
 /api/Usuario
 /api/Proveedor
@@ -323,7 +149,7 @@ Authorization: Bearer {token}
 
 ### Autenticación
 - Login con email y contraseña
-- Almacenamiento seguro del token JWT
+- Almacenamiento token JWT
 - Control de acceso por rol (Admin/Técnico)
 
 ### Dashboard Técnico
@@ -358,7 +184,6 @@ Authorization: Bearer {token}
 
 ### Interfaz
 - Modo claro/oscuro adaptativo al sistema
-- Paleta corporativa naranja (#FF7A00)
 - Material Design 3
 - Imagen de fondo en login
 - Navegación por pestañas según contexto
@@ -367,24 +192,27 @@ Authorization: Bearer {token}
 
 ## Documentación
 
+- [Memoria técnica](docs/memoria_tecnica_maintix.md)
+- [Manual de usuario](docs/manual_usuario_maintix.md)
 - [Planificación del proyecto](docs/planificacion.md)
 - [Alcance del proyecto](docs/alcance.md)
 - [Presupuesto](docs/presupuesto.md)
-- [Historial de cambios](CHANGELOG.md)
-- [Configuración del servidor](infrastructure/configuracion-servidor.md)
+- [Diagrama base de datos](docs/diagrama_bbdd.png)
 
 ## Instalación y Ejecución
 
 ### Backend API
 ```bash
 # Clonar el repositorio
-git clone [URL_REPOSITORIO]
+git clone https://github.com/tonhete/maintix
 
 # Navegar al proyecto backend
 cd Maintix_API
 
 # Restaurar paquetes NuGet
 dotnet restore
+
+# Configurar conexión a base de datos en appsettings.json
 
 # Ejecutar la aplicación
 dotnet run
@@ -395,11 +223,6 @@ dotnet run
 2. Sincronizar dependencias de Gradle
 3. Configurar la URL de la API en `RetrofitClient.kt`
 4. Ejecutar en emulador o dispositivo físico
-
-## Próximos Pasos
-
-1. 📚 Completar documentación final
-2. 🚀 Preparar entrega del proyecto
 
 ## Autor
 

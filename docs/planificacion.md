@@ -99,10 +99,9 @@
 - ✅ Fase 3: Base de Datos - 8h
 - ✅ Fase 4: Backend API REST - 40h
 - ✅ Fase 5: Aplicación Android - 62h
-- ⏳ Fase 6: Documentación Final - 0/4h
+- ✅ Fase 6: Documentación Final - 0/4h
 
-**Fase actual:** Documentación final  
-**Próximo hito:** Entrega final (15/12/2025)
+**Próximo hito:** Entrega final (10/12/2025)
 
 ---
 
