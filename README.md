@@ -192,8 +192,8 @@ Authorization: Bearer {token}
 
 ## Documentación
 
-- [Memoria técnica](docs/memoria_tecnica_maintix.md)
-- [Manual de usuario](docs/manual_usuario_maintix.md)
+- [Memoria técnica](docs/MEMORIA_TECNICA_MAINTIX.md)
+- [Manual de usuario](docs/MANUAL_USUARIO_MAINTIX.md)
 - [Planificación del proyecto](docs/planificacion.md)
 - [Alcance del proyecto](docs/alcance.md)
 - [Presupuesto](docs/presupuesto.md)
